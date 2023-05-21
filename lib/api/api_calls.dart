@@ -83,6 +83,13 @@ class ApiCalls {
     return response;
   }
 
+  static Future<Response> getMaterials(query) async {
+    var url = Uri.parse("${baseUrl}materials/list?query=$query");
+    var headers = await _headerWithToken();
+    var response = await get(url, headers: headers);
+    return response;
+  }
+
 
 
 }

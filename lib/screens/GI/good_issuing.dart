@@ -1,6 +1,12 @@
+import 'dart:convert';
+
+import 'package:akira_mobile/api/api_calls.dart';
 import 'package:akira_mobile/models/material_item.dart';
+import 'package:akira_mobile/screens/GI/components/material_search_modal.dart';
+import 'package:akira_mobile/utils/alerts.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:http/http.dart' as http;
 
 class GoodIssuing extends StatefulWidget {
   @override
@@ -22,25 +28,22 @@ class _GoodIssuingState extends State<GoodIssuing> {
   void initState() {
     super.initState();
 
-    fetchMaterials();
     _openQR();
   }
 
-  void fetchMaterials() {
-    // Simulating an asynchronous API call to fetch materials
-    Future.delayed(Duration(seconds: 2), () {
-      setState(() {
-        // Update the materials list with the fetched data
-        materials = [
-          MaterialItem(id: '1', name: 'Material 1', quantity: 20),
-          MaterialItem(id: '2', name: 'Material 2', quantity: 10),
-          MaterialItem(id: '3', name: 'Material 3', quantity: 5),
-          MaterialItem(id: '4', name: 'Material 4', quantity: 50),
-          MaterialItem(id: '5', name: 'Material 5', quantity: 100),
-        ];
-      });
-    });
+  Future<List<MaterialItem>> fetchMaterialsFromAPI(String query) async {
+    final response = await ApiCalls.getMaterials(query);
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body)['data'];
+      final materialList = List<MaterialItem>.from(data['materials']
+          .map((materialJson) => MaterialItem.fromJson(materialJson)));
+      return materialList;
+    } else {
+      Alerts.showMessage(context, "Something went wrong");
+      return []; // Return an empty list or handle the error case appropriately
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -59,31 +62,22 @@ class _GoodIssuingState extends State<GoodIssuing> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   IconButton(
-                    onPressed: () {
+                    onPressed: () async {
                       qrViewController?.pauseCamera();
-                      showModalBottomSheet(
+                      final selectedMaterial = await showModalBottomSheet<String>(
                         context: context,
                         builder: (BuildContext context) {
-                          return Container(
-                            height: 600,
-                            child: ListView.builder(
-                              itemCount: materials.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                MaterialItem material = materials[index];
-                                return ListTile(
-                                  title: Text(material.name),
-                                  onTap: () {
-                                    setState(() {
-                                      selectedMaterialId = material.id;
-                                    });
-                                    Navigator.pop(context);
-                                  },
-                                );
-                              },
-                            ),
+                          return MaterialSearchModal(
+                            onSearch: (query) => fetchMaterialsFromAPI(query),
                           );
                         },
                       );
+                      if (selectedMaterial != null) {
+                        setState(() {
+                          selectedMaterialId = selectedMaterial;
+                        });
+                      }
+                      qrViewController?.resumeCamera();
                     },
                     icon: Icon(Icons.list_alt),
                   ),
@@ -147,7 +141,7 @@ class _GoodIssuingState extends State<GoodIssuing> {
               const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: _confirmInputs,
-                child: const Text('Confirm'),
+                child: const Text('Issue'),
               ),
             ],
           ),

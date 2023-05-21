@@ -1,5 +1,5 @@
 class MaterialItem {
-  String id;
+  int id;
   String name;
   int quantity;
 
