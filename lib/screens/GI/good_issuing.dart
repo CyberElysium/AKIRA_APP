@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:akira_mobile/api/api_calls.dart';
 import 'package:akira_mobile/models/material_item.dart';
 import 'package:akira_mobile/models/warehouse.dart';
-import 'package:akira_mobile/screens/GI/components/material_search_modal.dart';
 import 'package:akira_mobile/utils/alerts.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +23,8 @@ class _GoodIssuingState extends State<GoodIssuing> {
   int quantity = 0;
   int? warehouseId;
 
+  bool showQrScanner = true;
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   QRViewController? qrViewController;
@@ -34,11 +35,13 @@ class _GoodIssuingState extends State<GoodIssuing> {
   void initState() {
     super.initState();
     _initializeWarehouse();
+    _openQR();
   }
 
   Future<void> _initializeWarehouse() async {
     final prefs = await SharedPreferences.getInstance();
-    Warehouse warehouse = Warehouse.fromJson(json.decode(prefs.getString('activeWarehouse')!));
+    Warehouse warehouse =
+        Warehouse.fromJson(json.decode(prefs.getString('activeWarehouse')!));
     setState(() {
       warehouseId = warehouse.id;
     });
@@ -63,7 +66,6 @@ class _GoodIssuingState extends State<GoodIssuing> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,44 +83,74 @@ class _GoodIssuingState extends State<GoodIssuing> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   IconButton(
-                    onPressed: () async {
-                      qrViewController?.pauseCamera();
-                      final selectedMaterial = await showModalBottomSheet<String>(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return MaterialSearchModal(
-                            onSearch: (query) => fetchMaterialsFromAPI(query),
-                          );
-                        },
-                      );
-                      if (selectedMaterial != null) {
-                        setState(() {
-                          selectedMaterialId = selectedMaterial;
-                        });
-                      }
-                      qrViewController?.resumeCamera();
+                    onPressed: () {
+                      setState(() {
+                        showQrScanner = !showQrScanner;
+                        if (showQrScanner) {
+                          _openQR();
+                        } else {
+                          qrViewController?.pauseCamera();
+                        }
+                      });
                     },
-                    icon: const Icon(Icons.list_alt),
+                    icon: Icon(
+                        showQrScanner ? Icons.qr_code_scanner : Icons.list_alt),
                   ),
                   const SizedBox(width: 16.0),
                 ],
               ),
               const SizedBox(height: 16.0),
+              if (!showQrScanner)
+                TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Search',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (query) {
+                    setState(() {
+                      materials = [];
+                    });
+                    _searchMaterials(query);
+                  },
+                ),
+              const SizedBox(height: 16.0),
               Expanded(
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    QRView(
-                      key: qrKey,
-                      onQRViewCreated: _onQRViewCreated,
-                      // overlay: QrScannerOverlayShape(
-                      //   borderRadius: 10,
-                      //   borderColor: Colors.red,
-                      //   borderLength: 30,
-                      //   borderWidth: 10,
-                      //   cutOutSize: 300,
-                      // ),
-                    ),
+                    if (showQrScanner)
+                      QRView(
+                        key: qrKey,
+                        onQRViewCreated: _onQRViewCreated,
+                      )
+                    else if (materials.isEmpty)
+                      Center(
+                        child: Text('No materials found.'),
+                      )
+                    else
+                      ListView.builder(
+                        itemCount: materials.length,
+                        itemBuilder: (context, index) {
+                          final material = materials[index];
+                          return Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            margin: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: ListTile(
+                              title: Text(material.name),
+                              onTap: () {
+                                setState(() {
+                                  selectedMaterialId = material.id.toString();
+                                  showQrScanner = true;
+                                  _openQR();
+                                });
+                              },
+                            ),
+                          );
+                        },
+                      ),
                   ],
                 ),
               ),
@@ -169,14 +201,28 @@ class _GoodIssuingState extends State<GoodIssuing> {
     );
   }
 
+  void _searchMaterials(String query) async {
+    if (query.isNotEmpty) {
+      setState(() {
+        materials = [];
+      });
+      final materialList = await fetchMaterialsFromAPI(query);
+      setState(() {
+        materials = materialList;
+      });
+    }
+  }
+
   void _onQRViewCreated(QRViewController controller) {
     setState(() {
       qrViewController = controller;
     });
-    controller.scannedDataStream.listen((scanData) {
-      _vibrate(); // Call the vibration method after scanning a code
-      _getMaterialBySKU(scanData.code!);
-    });
+    if (showQrScanner) {
+      controller.scannedDataStream.listen((scanData) {
+        _vibrate(); // Call the vibration method after scanning a code
+        _getMaterialBySKU(scanData.code!);
+      });
+    }
   }
 
   void _getMaterialBySKU(String code) {
@@ -203,7 +249,9 @@ class _GoodIssuingState extends State<GoodIssuing> {
 
   void _openQR() {
     qrViewController?.toggleFlash();
-    qrViewController?.resumeCamera();
+    if (showQrScanner) {
+      qrViewController?.resumeCamera();
+    }
   }
 
   void _confirmInputs() {
@@ -215,7 +263,9 @@ class _GoodIssuingState extends State<GoodIssuing> {
         return;
       }
 
-      ApiCalls.issueMaterial(selectedMaterialId, quantity, issueTo, warehouseId!).then((response) {
+      ApiCalls.issueMaterial(
+              selectedMaterialId, quantity, issueTo, warehouseId!)
+          .then((response) {
         if (response.statusCode == 200) {
           Alerts.showMessage(context, "Material issued successfully");
           setState(() {
