@@ -17,8 +17,10 @@ class _SelectWarehouseState extends State<SelectWarehouse> {
   List<Warehouse> warehouses = []; // Placeholder for the list of warehouses
   Warehouse? selectedWarehouse; // Placeholder for the selected warehouse
 
-  _fetchWarehouses() {
-    ApiCalls.getWarehouses().then((response) async {
+  Future<void> _fetchWarehouses() async {
+    try {
+      final response = await ApiCalls.getWarehouses();
+
       if (!mounted) {
         return;
       }
@@ -33,7 +35,10 @@ class _SelectWarehouseState extends State<SelectWarehouse> {
       } else {
         Alerts.showMessage(context, "Something went wrong");
       }
-    });
+    } catch (error) {
+      print('Error: $error');
+      // Handle error
+    }
   }
 
   @override
@@ -64,7 +69,7 @@ class _SelectWarehouseState extends State<SelectWarehouse> {
           Navigator.pushNamedAndRemoveUntil(
             context,
             '/home',
-            (route) => false,
+                (route) => false,
           );
         } else {
           Alerts.showMessage(context, "Something went wrong");
@@ -73,60 +78,68 @@ class _SelectWarehouseState extends State<SelectWarehouse> {
     }
   }
 
+  Future<void> _refreshData() async {
+    // Fetch the warehouses again
+    await _fetchWarehouses();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16.0),
-          // color: Colors.grey,
-          child: const Center(
-            child: Text(
-              'Select Warehouse',
-              style: TextStyle(
-                fontSize: 25.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+    return RefreshIndicator(
+      onRefresh: _refreshData,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            // color: Colors.grey,
+            child: const Center(
+              child: Text(
+                'Select Warehouse',
+                style: TextStyle(
+                  fontSize: 25.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
             ),
           ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: warehouses.length,
-            itemBuilder: (BuildContext context, int index) {
-              final warehouse = warehouses[index];
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    selectedWarehouse = warehouse;
-                  });
-                },
-                child: Material(
-                  elevation: selectedWarehouse == warehouse ? 4.0 : 0.0,
-                  color: selectedWarehouse == warehouse
-                      ? Colors.blue.withOpacity(0.5)
-                      : null,
-                  child: ListTile(
-                    title: Text(warehouse.name),
+          Expanded(
+            child: ListView.builder(
+              itemCount: warehouses.length,
+              itemBuilder: (BuildContext context, int index) {
+                final warehouse = warehouses[index];
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedWarehouse = warehouse;
+                    });
+                  },
+                  child: Material(
+                    elevation: selectedWarehouse == warehouse ? 4.0 : 0.0,
+                    color: selectedWarehouse == warehouse
+                        ? Colors.blue.withOpacity(0.5)
+                        : null,
+                    child: ListTile(
+                      title: Text(warehouse.name),
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            if (selectedWarehouse != null) {
-              // Open popup and show selected warehouse data
-              _confirmSelection();
-            }
-          },
-          child: const Text('Confirm'),
-        ),
-        const SizedBox(height: 20.0)
-      ],
+          ElevatedButton(
+            onPressed: () {
+              if (selectedWarehouse != null) {
+                // Open popup and show selected warehouse data
+                _confirmSelection();
+              }
+            },
+            child: const Text('Confirm'),
+          ),
+          const SizedBox(height: 20.0)
+        ],
+      ),
     );
   }
 }

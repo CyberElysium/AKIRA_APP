@@ -1,12 +1,17 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:akira_mobile/api/api_calls.dart';
 import 'package:akira_mobile/models/material_item.dart';
+import 'package:akira_mobile/models/warehouse.dart';
 import 'package:akira_mobile/screens/GI/components/material_search_modal.dart';
 import 'package:akira_mobile/utils/alerts.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vibration/vibration.dart';
 
 class GoodIssuing extends StatefulWidget {
   @override
@@ -17,6 +22,7 @@ class _GoodIssuingState extends State<GoodIssuing> {
   String selectedMaterialId = '';
   String issueTo = '';
   int quantity = 0;
+  int? warehouseId;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
@@ -27,7 +33,20 @@ class _GoodIssuingState extends State<GoodIssuing> {
   @override
   void initState() {
     super.initState();
+    _initializeWarehouse();
+  }
 
+  Future<void> _initializeWarehouse() async {
+    final prefs = await SharedPreferences.getInstance();
+    Warehouse warehouse = Warehouse.fromJson(json.decode(prefs.getString('activeWarehouse')!));
+    setState(() {
+      warehouseId = warehouse.id;
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _openQR();
   }
 
@@ -79,9 +98,9 @@ class _GoodIssuingState extends State<GoodIssuing> {
                       }
                       qrViewController?.resumeCamera();
                     },
-                    icon: Icon(Icons.list_alt),
+                    icon: const Icon(Icons.list_alt),
                   ),
-                  SizedBox(width: 16.0),
+                  const SizedBox(width: 16.0),
                 ],
               ),
               const SizedBox(height: 16.0),
@@ -92,13 +111,13 @@ class _GoodIssuingState extends State<GoodIssuing> {
                     QRView(
                       key: qrKey,
                       onQRViewCreated: _onQRViewCreated,
-                      overlay: QrScannerOverlayShape(
-                        borderRadius: 10,
-                        borderColor: Colors.red,
-                        borderLength: 30,
-                        borderWidth: 10,
-                        cutOutSize: 300,
-                      ),
+                      // overlay: QrScannerOverlayShape(
+                      //   borderRadius: 10,
+                      //   borderColor: Colors.red,
+                      //   borderLength: 30,
+                      //   borderWidth: 10,
+                      //   cutOutSize: 300,
+                      // ),
                     ),
                   ],
                 ),
@@ -155,11 +174,31 @@ class _GoodIssuingState extends State<GoodIssuing> {
       qrViewController = controller;
     });
     controller.scannedDataStream.listen((scanData) {
+      _vibrate(); // Call the vibration method after scanning a code
+      _getMaterialBySKU(scanData.code!);
+    });
+  }
+
+  void _getMaterialBySKU(String code) {
+    ApiCalls.getMaterialBySKU(code).then((response) async {
+      if (!mounted) {
+        return;
+      }
+
+      var data = json.decode(response.body)['data'];
       setState(() {
-        // Handle scanned QR code data here
-        // You can update the selectedMaterial or any other fields based on the scan result
+        selectedMaterialId = data['stock']['id'].toString();
       });
     });
+  }
+
+  void _vibrate() {
+    if (kIsWeb) return; // Vibration is not supported on web platforms
+    if (Platform.isIOS) {
+      Vibration.vibrate(duration: 100);
+    } else if (Platform.isAndroid) {
+      Vibration.vibrate();
+    }
   }
 
   void _openQR() {
@@ -171,31 +210,23 @@ class _GoodIssuingState extends State<GoodIssuing> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Confirm Inputs'),
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Material: $selectedMaterialId'),
-                Text('Quantity: $quantity'),
-                Text('Issue To: $issueTo'),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('Close'),
-              ),
-            ],
-          );
-        },
-      );
+      if (selectedMaterialId.isEmpty) {
+        Alerts.showMessage(context, "Please select a material");
+        return;
+      }
+
+      ApiCalls.issueMaterial(selectedMaterialId, quantity, issueTo, warehouseId!).then((response) {
+        if (response.statusCode == 200) {
+          Alerts.showMessage(context, "Material issued successfully");
+          setState(() {
+            selectedMaterialId = '';
+            quantity = 0;
+            issueTo = '';
+          });
+        } else {
+          Alerts.showMessage(context, "Something went wrong");
+        }
+      });
     }
   }
 

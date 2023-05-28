@@ -26,8 +26,8 @@ class LoginForm extends StatefulWidget {
 }
 
 class _LoginFormState extends State<LoginForm> {
-  final _passwordController = TextEditingController();
-  final _emailController = TextEditingController();
+  final _pinController = TextEditingController();
+  final _usernameController = TextEditingController();
   bool hidePassword = true;
 
   @override
@@ -36,13 +36,13 @@ class _LoginFormState extends State<LoginForm> {
       child: Column(
         children: [
           TextFormField(
-            keyboardType: TextInputType.emailAddress,
+            keyboardType: TextInputType.text,
             textInputAction: TextInputAction.next,
             cursorColor: kPrimaryColor,
-            onSaved: (email) {},
-            controller: _emailController,
+            onSaved: (username) {},
+            controller: _usernameController,
             decoration: const InputDecoration(
-              hintText: "Your email",
+              hintText: "Username",
               prefixIcon: Padding(
                 padding: EdgeInsets.all(defaultPadding),
                 child: Icon(Icons.person),
@@ -52,12 +52,14 @@ class _LoginFormState extends State<LoginForm> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: defaultPadding),
             child: TextFormField(
+              keyboardType: TextInputType.number,
               textInputAction: TextInputAction.done,
               obscureText: true,
               cursorColor: kPrimaryColor,
-              controller: _passwordController,
+              controller: _pinController,
+              maxLength: 6, // Restrict the PIN to 6 digits
               decoration: const InputDecoration(
-                hintText: "Your password",
+                hintText: "PIN (6 digits)",
                 prefixIcon: Padding(
                   padding: EdgeInsets.all(defaultPadding),
                   child: Icon(Icons.lock),
@@ -84,27 +86,25 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   void onLogInPress() {
-    String email = _emailController.text.trim();
-    String password = _passwordController.text.trim();
+    String username = _usernameController.text.trim();
+    String pin = _pinController.text.trim();
     String deviceName = Platform.isAndroid ? "android" : "ios";
 
-    if (!Validations.validateString(email)) {
-      Alerts.showMessage(context, "Invalid email");
+    if (!Validations.validateString(username)) {
+      Alerts.showMessage(context, "Invalid username");
       return;
     }
 
-    if (!Validations.validateString(password)) {
-      Alerts.showMessage(context, "Invalid password");
+    if (!Validations.validateString(pin) || pin.length != 6) {
+      Alerts.showMessage(context, "Invalid PIN. Please enter a 6-digit PIN.");
       return;
     }
 
-    ApiCalls.login(email: email, password: password, deviceName: deviceName)
+    ApiCalls.login(username: username, pin: pin, deviceName: deviceName)
         .then((response) async {
       if (!mounted) {
         return;
       }
-
-      print(response.body);
 
       if (response.statusCode == 200) {
         var data = json.decode(response.body)['data'];

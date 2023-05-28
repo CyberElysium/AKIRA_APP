@@ -1,7 +1,7 @@
 class MaterialItem {
   int id;
   String name;
-  int quantity;
+  String quantity;
 
   MaterialItem({
     required this.id,
@@ -12,7 +12,7 @@ class MaterialItem {
   factory MaterialItem.fromJson(Map<String, dynamic> json) {
     return MaterialItem(
       id: json['id'],
-      name: json['name'],
+      name: json['name_with_code'],
       quantity: json['quantity'],
     );
   }
