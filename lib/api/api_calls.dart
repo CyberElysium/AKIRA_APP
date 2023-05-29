@@ -110,6 +110,13 @@ class ApiCalls {
     return response;
   }
 
+  static Future<Response> getStockMaterialById(int id) async {
+    var url = Uri.parse("${baseUrl}stock/$id");
+    var headers = await _headerWithToken();
+    var response = await get(url, headers: headers);
+    return response;
+  }
+
 
 
 }

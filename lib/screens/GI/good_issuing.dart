@@ -30,6 +30,7 @@ class _GoodIssuingState extends State<GoodIssuing> {
   QRViewController? qrViewController;
 
   List<MaterialItem> materials = [];
+  MaterialItem? selectedMaterial;
 
   @override
   void initState() {
@@ -85,6 +86,8 @@ class _GoodIssuingState extends State<GoodIssuing> {
                   IconButton(
                     onPressed: () {
                       setState(() {
+                        selectedMaterialId = '';
+                        selectedMaterial = null;
                         showQrScanner = !showQrScanner;
                         if (showQrScanner) {
                           _openQR();
@@ -94,13 +97,14 @@ class _GoodIssuingState extends State<GoodIssuing> {
                       });
                     },
                     icon: Icon(
-                        showQrScanner ? Icons.qr_code_scanner : Icons.list_alt),
+                      showQrScanner ? Icons.qr_code_scanner : Icons.list_alt,
+                    ),
                   ),
                   const SizedBox(width: 16.0),
                 ],
               ),
               const SizedBox(height: 16.0),
-              if (!showQrScanner)
+              if (!showQrScanner && selectedMaterialId.isEmpty)
                 TextFormField(
                   decoration: const InputDecoration(
                     labelText: 'Search',
@@ -118,16 +122,16 @@ class _GoodIssuingState extends State<GoodIssuing> {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    if (showQrScanner)
+                    if (showQrScanner && selectedMaterialId.isEmpty)
                       QRView(
                         key: qrKey,
                         onQRViewCreated: _onQRViewCreated,
                       )
-                    else if (materials.isEmpty)
-                      Center(
+                    else if (selectedMaterialId.isEmpty && materials.isEmpty)
+                      const Center(
                         child: Text('No materials found.'),
                       )
-                    else
+                    else if (selectedMaterialId.isEmpty)
                       ListView.builder(
                         itemCount: materials.length,
                         itemBuilder: (context, index) {
@@ -139,18 +143,42 @@ class _GoodIssuingState extends State<GoodIssuing> {
                             ),
                             margin: const EdgeInsets.symmetric(vertical: 4.0),
                             child: ListTile(
-                              title: Text(material.name),
+                              title: Text(material.name_with_code),
                               onTap: () {
-                                setState(() {
-                                  selectedMaterialId = material.id.toString();
-                                  showQrScanner = true;
-                                  _openQR();
-                                });
+                                _getStockMaterialById(material.id);
                               },
                             ),
                           );
                         },
-                      ),
+                      )
+                    else
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          margin: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: ListTile(
+                            title: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Material name: ${selectedMaterial!.name}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16.0,
+                                  ),
+                                ),
+                                SizedBox(height: 8.0),
+                                Text('Code: ${selectedMaterial!.code}'),
+                                Text('UOM: ${selectedMaterial!.uom_name}'),
+                                Text('Category: ${selectedMaterial!.category_name}'),
+                                Text('Available Quantity: ${selectedMaterial!.quantity}'),
+                                Text('SKU: ${selectedMaterial!.sku}'),
+                              ],
+                            ),
+                          ),
+                        ),
                   ],
                 ),
               ),
@@ -233,6 +261,22 @@ class _GoodIssuingState extends State<GoodIssuing> {
 
       var data = json.decode(response.body)['data'];
       setState(() {
+        selectedMaterial = MaterialItem.fromJson(data['stock']);
+        selectedMaterialId = data['stock']['id'].toString();
+      });
+    });
+  }
+
+  void _getStockMaterialById(int materialId) {
+    ApiCalls.getStockMaterialById(materialId).then((response) async {
+      if (!mounted) {
+        return;
+      }
+
+      var data = json.decode(response.body)['data'];
+      print(data['stock']);
+      setState(() {
+        selectedMaterial = MaterialItem.fromJson(data['stock']);
         selectedMaterialId = data['stock']['id'].toString();
       });
     });
