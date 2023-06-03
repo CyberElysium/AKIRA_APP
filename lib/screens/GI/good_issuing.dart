@@ -153,33 +153,38 @@ class _GoodIssuingState extends State<GoodIssuing> {
                         },
                       )
                     else
-                        Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          margin: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: ListTile(
-                            title: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Material name: ${selectedMaterial!.name}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16.0,
+                        OverflowBox(
+                          minHeight: 200.0,
+                          maxHeight: 200.0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            margin: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: ListTile(
+                              title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Material name: ${selectedMaterial!.name}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16.0,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: 8.0),
-                                Text('Code: ${selectedMaterial!.code}'),
-                                Text('UOM: ${selectedMaterial!.uom_name}'),
-                                Text('Category: ${selectedMaterial!.category_name}'),
-                                Text('Available Quantity: ${selectedMaterial!.quantity}'),
-                                Text('SKU: ${selectedMaterial!.sku}'),
-                              ],
+                                  const SizedBox(height: 8.0),
+                                  Text('Code: ${selectedMaterial!.code}'),
+                                  Text('UOM: ${selectedMaterial!.uom_name}'),
+                                  Text('Category: ${selectedMaterial!.category_name}'),
+                                  Text('Available Quantity: ${selectedMaterial!.quantity}'),
+                                  Text('SKU: ${selectedMaterial!.sku}'),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
+                        )
+
                   ],
                 ),
               ),
