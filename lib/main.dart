@@ -1,7 +1,9 @@
 import 'package:akira_mobile/middlewares/AuthMiddleware.dart';
 import 'package:akira_mobile/screens/GI/good_issuing.dart';
+import 'package:akira_mobile/screens/GRN/create.dart';
 import 'package:akira_mobile/screens/Home/home.dart';
 import 'package:akira_mobile/screens/Login/login_screen.dart';
+import 'package:akira_mobile/screens/Material/create.dart';
 import 'package:akira_mobile/screens/Preview/scan_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -69,6 +71,8 @@ class MyApp extends StatelessWidget {
           '/welcome': (context) => const WelcomeScreen(),
           '/scan': (context) => ScanPage(),
           '/good_issuing': (context) => GoodIssuing(),
+          '/new_material': (context) => CreateMaterial(),
+          '/new_grn': (context) => CreateGRN(),
         }
     );
   }

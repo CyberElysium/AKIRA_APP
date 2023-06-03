@@ -146,8 +146,72 @@ class ApiCalls {
     request.headers.addAll(headers);
     var response = await request.send();
     return response;
-
   }
+
+  static Future<Response> getCategories() async {
+    var url = Uri.parse("${baseUrl}categories/list");
+    var headers = await _headerWithToken();
+    var response = await get(url, headers: headers);
+    return response;
+  }
+
+  static Future<Response> getUOMs() async {
+    var url = Uri.parse("${baseUrl}uom/list");
+    var headers = await _headerWithToken();
+    var response = await get(url, headers: headers);
+    return response;
+  }
+
+  static Future<Response> getSuppliers() async {
+    var url = Uri.parse("${baseUrl}suppliers/list");
+    var headers = await _headerWithToken();
+    var response = await get(url, headers: headers);
+    return response;
+  }
+
+  static createMaterial({required String name, required String uom, required String category, double? rate, String? supplier, String? color, double? width, double? height, double? length, double? size, double? weight, double? quantity, String? location, String? batch, String? invoice, DateTime? effDate, int? warehouseId}) async {
+    var url = Uri.parse("${baseUrl}materials/create");
+    var headers = await _headerWithToken();
+    var payload = {
+      "name": name,
+      "uom_id": uom,
+      "category_id": category,
+      "rate": rate,
+      "supplier_id": supplier,
+      "color": color,
+      "width": width,
+      "height": height,
+      "length": length,
+      "size": size,
+      "weight": weight,
+      "quantity": quantity,
+      "location": location,
+      "batch": batch,
+      "invoice": invoice,
+      "eff_date": effDate?.toIso8601String(),
+      "warehouse_id": warehouseId,
+      "transaction_type_id": 1
+    };
+    var response = post(url, headers: headers, body: json.encode(payload));
+    return response;
+  }
+
+  static createGRN(int warehouseId, String material, double quantity, String? location, String? batch, String invoice, DateTime dateTime) async {
+    var url = Uri.parse("${baseUrl}grn/create");
+    var headers = await _headerWithToken();
+    var payload = {
+      "warehouse_id": warehouseId,
+      "material_code": material,
+      "qty": quantity,
+      "location": location,
+      "batch": batch,
+      "invoice": invoice,
+      "eff_date": dateTime.toIso8601String()
+    };
+    var response = post(url, headers: headers, body: json.encode(payload));
+    return response;
+  }
+
 
 
 
