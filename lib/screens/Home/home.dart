@@ -46,19 +46,13 @@ class _HomeScreenState extends State<HomeScreen> {
             itemBuilder: (BuildContext context) {
               return [
                 const PopupMenuItem(
-                  value: 'profile',
-                  child: Text('Profile'),
-                ),
-                const PopupMenuItem(
                   value: 'logout',
                   child: Text('Logout'),
                 ),
               ];
             },
             onSelected: (value) {
-              if (value == 'profile') {
-                // Handle profile action
-              } else if (value == 'logout') {
+              if (value == 'logout') {
                 _logout();
               }
             },

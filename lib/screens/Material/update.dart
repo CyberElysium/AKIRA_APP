@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:akira_mobile/api/api_calls.dart';
 import 'package:akira_mobile/models/stock.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -196,7 +197,7 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
                       ),
                       subtitle: widget.stock?.imageUrl != null
                           ? Image.network(
-                              widget.stock!.imageUrl!,
+                        updatedStock != null && updatedStock!.imageUrl != null ? updatedStock!.imageUrl! : widget.stock!.imageUrl!,
                               fit: BoxFit.cover,
                             )
                           : const SizedBox(),
@@ -209,8 +210,9 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
             if (_isUploading)
               Container(
                 alignment: Alignment.center,
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                child: SpinKitCircle(
+                  color: Colors.blue,
+                  size: 50.0,
                 ),
               ),
             if (_image != null)

@@ -5,9 +5,9 @@ import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiCalls {
-  // static const String baseUrl = "http://10.0.2.2:8000/api/";
+  static const String baseUrl = "http://10.0.2.2:8000/api/";
   // static const String baseUrl = "https://akira.cyberelysium.xyz/api/";
-  static const String baseUrl = "https://akira.cyberelysium.live/api/";
+  // static const String baseUrl = "https://akira.cyberelysium.live/api/";
 
   static _emptyHeaders() {
     return {
