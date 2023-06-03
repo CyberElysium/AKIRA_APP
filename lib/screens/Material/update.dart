@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:akira_mobile/api/api_calls.dart';
@@ -19,45 +20,11 @@ class MaterialUpdatePage extends StatefulWidget {
 
 class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
   File? _image;
+  Stock? updatedStock;
+
+  bool _isUploading = false;
 
   final picker = ImagePicker();
-
-  Future getImage() async {
-    setState(() {
-      _image = null;
-    });
-
-    final pickedFile = await picker.getImage(source: ImageSource.camera);
-
-    setState(() {
-      if (pickedFile != null) {
-        _image = File(pickedFile.path);
-      }
-    });
-  }
-
-  void submitImage() {
-    ApiCalls.uploadImage(_image!,widget.stock?.materialId).then((response) async {
-      if (!mounted) {
-        return;
-      }
-
-      print('Response: ${response.statusCode}');
-      if (response.statusCode == 200) {
-        Fluttertoast.showToast(
-          msg: 'Image uploaded successfully',
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-        );
-      } else {
-        Fluttertoast.showToast(
-          msg: 'Something went wrong',
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-        );
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -239,6 +206,13 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
               ),
             ),
             const SizedBox(height: 40),
+            if (_isUploading)
+              Container(
+                alignment: Alignment.center,
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                ),
+              ),
             if (_image != null)
               Flexible(
                 child: ClipRRect(
@@ -250,18 +224,88 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
                 ),
               ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: getImage,
-              child: const Text('Capture Image'),
-            ),
-            if (_image != null) SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: submitImage,
-              child: const Text('Submit Image'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: getImage,
+                  icon: Icon(Icons.camera_alt),
+                  tooltip: 'Capture Image',
+                ),
+                if (_image != null) const SizedBox(width: 10),
+                IconButton(
+                  onPressed: submitImage,
+                  icon: Icon(Icons.cloud_upload),
+                  tooltip: 'Submit Image',
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
+  }
+
+
+  Future getImage() async {
+    setState(() {
+      _image = null;
+    });
+
+    final pickedFile = await picker.getImage(source: ImageSource.camera);
+
+    setState(() {
+      if (pickedFile != null) {
+        _image = File(pickedFile.path);
+      }
+    });
+  }
+
+  void submitImage() {
+    setState(() {
+      _isUploading = true;
+    });
+
+    ApiCalls.uploadImage(_image!,widget.stock?.materialId).then((response) async {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isUploading = false;
+      });
+
+      if (response.statusCode == 200) {
+        Fluttertoast.showToast(
+          msg: 'Image uploaded successfully',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+        );
+
+        _getMaterialBySKU(widget.stock?.sku ?? '');
+      } else {
+        Fluttertoast.showToast(
+          msg: 'Something went wrong',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+        );
+      }
+    });
+  }
+
+  void _getMaterialBySKU(String code) {
+    ApiCalls.getMaterialBySKUPreview(code).then((response) async {
+      if (!mounted) {
+        return;
+      }
+
+      if(response.statusCode == 200) {
+        var data = json.decode(response.body)['data'];
+        setState(() {
+          updatedStock = Stock.fromJson(data['stock']);
+        });
+      }
+
+    });
   }
 }

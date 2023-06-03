@@ -100,162 +100,165 @@ class _ScanPageState extends State<ScanPage> {
                   null) // Show stock data if showScanner is false and stock is not null
             Expanded(
               flex: 1,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                alignment: Alignment.center,
-                child: ListView(
-                  children: [
-                    ListTile(
-                      title: const Text(
-                        'SKU Code:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+              child: RefreshIndicator(
+                onRefresh: _refreshStockData,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  alignment: Alignment.center,
+                  child: ListView(
+                    children: [
+                      ListTile(
+                        title: const Text(
+                          'SKU Code:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        subtitle: Text(
+                          stock?.sku ?? '',
+                          style: const TextStyle(
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                      subtitle: Text(
-                        stock?.sku ?? '',
-                        style: const TextStyle(
-                          fontSize: 14,
+                      ListTile(
+                        title: const Text(
+                          'Material Name:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        subtitle: Text(
+                          stock?.materialName ?? '',
+                          style: const TextStyle(
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                    ),
-                    ListTile(
-                      title: const Text(
-                        'Material Name:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                      ListTile(
+                        title: const Text(
+                          'Material Code:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        subtitle: Text(
+                          stock?.materialCode ?? '',
+                          style: const TextStyle(
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                      subtitle: Text(
-                        stock?.materialName ?? '',
-                        style: const TextStyle(
-                          fontSize: 14,
+                      ListTile(
+                        title: const Text(
+                          'UOM:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        subtitle: Text(
+                          stock?.uom ?? '',
+                          style: const TextStyle(
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                    ),
-                    ListTile(
-                      title: const Text(
-                        'Material Code:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                      ListTile(
+                        title: const Text(
+                          'Category Name:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        subtitle: Text(
+                          stock?.categoryName ?? '',
+                          style: const TextStyle(
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                      subtitle: Text(
-                        stock?.materialCode ?? '',
-                        style: const TextStyle(
-                          fontSize: 14,
+                      ListTile(
+                        title: const Text(
+                          'Warehouse Name:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        subtitle: Text(
+                          stock?.warehouseName ?? '',
+                          style: const TextStyle(
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                    ),
-                    ListTile(
-                      title: const Text(
-                        'UOM:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                      ListTile(
+                        title: const Text(
+                          'Rate:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        subtitle: Text(
+                          stock?.rate ?? '',
+                          style: const TextStyle(
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                      subtitle: Text(
-                        stock?.uom ?? '',
-                        style: const TextStyle(
-                          fontSize: 14,
+                      ListTile(
+                        title: const Text(
+                          'Color:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        subtitle: Text(
+                          stock?.color ?? '',
+                          style: const TextStyle(
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                    ),
-                    ListTile(
-                      title: const Text(
-                        'Category Name:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                      ListTile(
+                        title: const Text(
+                          'Supplier Name:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        subtitle: Text(
+                          stock?.supplierName ?? '',
+                          style: const TextStyle(
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                      subtitle: Text(
-                        stock?.categoryName ?? '',
-                        style: const TextStyle(
-                          fontSize: 14,
+                      ListTile(
+                        title: const Text(
+                          'Image:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
+                        subtitle: stock?.imageUrl != null
+                            ? Image.network(
+                                stock!.imageUrl!,
+                                fit: BoxFit.cover,
+                              )
+                            : const SizedBox(),
                       ),
-                    ),
-                    ListTile(
-                      title: const Text(
-                        'Warehouse Name:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      subtitle: Text(
-                        stock?.warehouseName ?? '',
-                        style: const TextStyle(
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    ListTile(
-                      title: const Text(
-                        'Rate:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      subtitle: Text(
-                        stock?.rate ?? '',
-                        style: const TextStyle(
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    ListTile(
-                      title: const Text(
-                        'Color:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      subtitle: Text(
-                        stock?.color ?? '',
-                        style: const TextStyle(
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    ListTile(
-                      title: const Text(
-                        'Supplier Name:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      subtitle: Text(
-                        stock?.supplierName ?? '',
-                        style: const TextStyle(
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    ListTile(
-                      title: const Text(
-                        'Image:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      subtitle: stock?.imageUrl != null
-                          ? Image.network(
-                              stock!.imageUrl!,
-                              fit: BoxFit.cover,
-                            )
-                          : const SizedBox(),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -275,6 +278,10 @@ class _ScanPageState extends State<ScanPage> {
         ],
       ),
     );
+  }
+
+  Future<void> _refreshStockData() async {
+    _getMaterialBySKU(stock?.sku ?? '');
   }
 
   void _onQRViewCreated(QRViewController controller) {
