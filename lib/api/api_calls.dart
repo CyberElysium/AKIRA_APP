@@ -6,7 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiCalls {
   // static const String baseUrl = "http://10.0.2.2:8000/api/";
-  static const String baseUrl = "https://akira.cyberelysium.xyz/api/";
+  // static const String baseUrl = "https://akira.cyberelysium.xyz/api/";
+  static const String baseUrl = "https://akira.cyberelysium.live/api/";
 
   static _emptyHeaders() {
     return {
@@ -22,6 +23,19 @@ class ApiCalls {
     var headers = {
       "Accept": "application/json",
       "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    return headers;
+  }
+
+  static Future<Map<String, String>> _headerWithTokenAndMultipart() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var token = prefs.getString('access_token'); // Get the token from SharedPreferences
+
+    var headers = {
+      "Accept": "application/json",
+      "Content-Type": "multipart/form-data",
       "Authorization": "Bearer $token",
     };
 
@@ -97,6 +111,13 @@ class ApiCalls {
     return response;
   }
 
+  static Future<Response> getMaterialBySKUPreview(String code) async {
+    var url = Uri.parse("${baseUrl}materials/by-sku/preview/$code");
+    var headers = await _headerWithToken();
+    var response = await get(url, headers: headers);
+    return response;
+  }
+
   static Future<Response> issueMaterial(String materialId, int quantity,String issueTo, int warehouseId) async {
     var url = Uri.parse("${baseUrl}gi/issue");
     var headers = await _headerWithToken();
@@ -115,6 +136,17 @@ class ApiCalls {
     var headers = await _headerWithToken();
     var response = await get(url, headers: headers);
     return response;
+  }
+
+  static Future<StreamedResponse> uploadImage(File file, int? materialId) async {
+    var url = Uri.parse("${baseUrl}materials/update/image/$materialId");
+    var headers = await _headerWithTokenAndMultipart();
+    var request = MultipartRequest('POST', url);
+    request.files.add(await MultipartFile.fromPath('photo', file.path));
+    request.headers.addAll(headers);
+    var response = await request.send();
+    return response;
+
   }
 
 

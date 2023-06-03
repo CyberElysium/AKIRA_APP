@@ -3,10 +3,15 @@ import 'dart:io';
 
 import 'package:akira_mobile/api/api_calls.dart';
 import 'package:akira_mobile/models/stock.dart';
+import 'package:akira_mobile/screens/Material/update.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:vibration/vibration.dart';
+
+import 'package:http/http.dart' as http;
 
 class ScanPage extends StatefulWidget {
   const ScanPage({Key? key}) : super(key: key);
@@ -22,15 +27,7 @@ class _ScanPageState extends State<ScanPage> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   bool showScanner = true; // Track whether to show the QR scanner or stock data
 
-  @override
-  void reassemble() {
-    super.reassemble();
-    if (Platform.isAndroid) {
-      controller!.pauseCamera();
-    } else if (Platform.isIOS) {
-      controller!.resumeCamera();
-    }
-  }
+  File? _imageFile;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +53,8 @@ class _ScanPageState extends State<ScanPage> {
                         color: Colors.blue,
                         width: 2.0,
                       ),
-                      borderRadius: BorderRadius.circular(10.0), // Add border radius for a rounded look
+                      borderRadius: BorderRadius.circular(
+                          10.0), // Add border radius for a rounded look
                     ),
                     child: AspectRatio(
                       aspectRatio: 1,
@@ -66,7 +64,8 @@ class _ScanPageState extends State<ScanPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20), // Add some spacing between the QR scanner and the guideline text
+                  const SizedBox(height: 20),
+                  // Add some spacing between the QR scanner and the guideline text
                   const Text(
                     'Please center the camera on the QR code',
                     style: TextStyle(
@@ -78,7 +77,24 @@ class _ScanPageState extends State<ScanPage> {
                 ],
               ),
             ),
-
+          if (!showScanner && stock != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Align(
+                alignment: Alignment.topRight,
+                child: IconButton(
+                  icon: const Icon(Icons.camera_alt),
+                  tooltip: 'Take Photo',
+                  onPressed: () {
+                    // Navigate to the new material update page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MaterialUpdatePage(stock: stock)),
+                    );
+                  },
+                ),
+              ),
+            ),
           if (!showScanner &&
               stock !=
                   null) // Show stock data if showScanner is false and stock is not null
@@ -98,7 +114,7 @@ class _ScanPageState extends State<ScanPage> {
                         ),
                       ),
                       subtitle: Text(
-                        stock!.sku,
+                        stock?.sku ?? '',
                         style: const TextStyle(
                           fontSize: 14,
                         ),
@@ -113,7 +129,7 @@ class _ScanPageState extends State<ScanPage> {
                         ),
                       ),
                       subtitle: Text(
-                        stock!.materialName,
+                        stock?.materialName ?? '',
                         style: const TextStyle(
                           fontSize: 14,
                         ),
@@ -128,7 +144,7 @@ class _ScanPageState extends State<ScanPage> {
                         ),
                       ),
                       subtitle: Text(
-                        stock!.materialCode,
+                        stock?.materialCode ?? '',
                         style: const TextStyle(
                           fontSize: 14,
                         ),
@@ -143,7 +159,7 @@ class _ScanPageState extends State<ScanPage> {
                         ),
                       ),
                       subtitle: Text(
-                        stock!.uom,
+                        stock?.uom ?? '',
                         style: const TextStyle(
                           fontSize: 14,
                         ),
@@ -158,7 +174,7 @@ class _ScanPageState extends State<ScanPage> {
                         ),
                       ),
                       subtitle: Text(
-                        stock!.categoryName,
+                        stock?.categoryName ?? '',
                         style: const TextStyle(
                           fontSize: 14,
                         ),
@@ -173,11 +189,71 @@ class _ScanPageState extends State<ScanPage> {
                         ),
                       ),
                       subtitle: Text(
-                        stock!.warehouseName,
+                        stock?.warehouseName ?? '',
                         style: const TextStyle(
                           fontSize: 14,
                         ),
                       ),
+                    ),
+                    ListTile(
+                      title: const Text(
+                        'Rate:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      subtitle: Text(
+                        stock?.rate ?? '',
+                        style: const TextStyle(
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    ListTile(
+                      title: const Text(
+                        'Color:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      subtitle: Text(
+                        stock?.color ?? '',
+                        style: const TextStyle(
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    ListTile(
+                      title: const Text(
+                        'Supplier Name:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      subtitle: Text(
+                        stock?.supplierName ?? '',
+                        style: const TextStyle(
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    ListTile(
+                      title: const Text(
+                        'Image:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      subtitle: stock?.imageUrl != null
+                          ? Image.network(
+                              stock!.imageUrl!,
+                              fit: BoxFit.cover,
+                            )
+                          : const SizedBox(),
                     ),
                   ],
                 ),
@@ -211,17 +287,40 @@ class _ScanPageState extends State<ScanPage> {
   }
 
   void _getMaterialBySKU(String code) {
-    ApiCalls.getMaterialBySKU(code).then((response) async {
+    ApiCalls.getMaterialBySKUPreview(code).then((response) async {
       if (!mounted) {
         return;
       }
 
-      var data = json.decode(response.body)['data'];
-      print(data);
-      setState(() {
-        showScanner = false; // Set showScanner to false to hide the QR scanner
-        stock = Stock.fromJson(data['stock']);
-      });
+      if (response.statusCode == 404) {
+        Fluttertoast.showToast(
+          msg: "No Material found.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+        return;
+      }
+
+      try {
+        var data = json.decode(response.body)['data'];
+        setState(() {
+          showScanner =
+              false; // Set showScanner to false to hide the QR scanner
+          stock = Stock.fromJson(data['stock']);
+        });
+      } catch (e) {
+        Fluttertoast.showToast(
+          msg: "Something went wrong. Please try again",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+      }
     });
   }
 

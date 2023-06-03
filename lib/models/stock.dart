@@ -7,6 +7,11 @@ class Stock {
   String uom;
   String categoryName;
   String warehouseName;
+  String? imageUrl;
+  String? rate;
+  String? color;
+  String? supplierName;
+  int materialId;
 
   Stock({
     required this.id,
@@ -17,6 +22,11 @@ class Stock {
     required this.uom,
     required this.categoryName,
     required this.warehouseName,
+    this.imageUrl,
+    this.rate,
+    this.color,
+    this.supplierName,
+    required this.materialId,
   });
 
   factory Stock.fromJson(Map<String, dynamic> json) {
@@ -29,6 +39,11 @@ class Stock {
       uom: json['uom_name'],
       categoryName: json['category_name'],
       warehouseName: json['warehouse_name'],
+      imageUrl: json['image_url'],
+      rate: json['rate'],
+      color: json['color'],
+      supplierName: json['supplier_name'],
+      materialId: json['material_id'],
     );
   }
 
@@ -41,11 +56,16 @@ class Stock {
     "uom": uom,
     "categoryName": categoryName,
     "warehouseName": warehouseName,
+    "imageUrl": imageUrl,
+    "rate": rate,
+    "color": color,
+    "supplierName": supplierName,
+    "materialId": materialId,
   };
 
   @override
   String toString() {
-    return 'Stock{id: $id, sku: $sku, materialName: $materialName, quantity: $quantity, materialCode: $materialCode, uom: $uom, categoryName: $categoryName, warehouseName: $warehouseName}';
+    return 'Stock{id: $id, sku: $sku, materialName: $materialName, quantity: $quantity, materialCode: $materialCode, uom: $uom, categoryName: $categoryName, warehouseName: $warehouseName, imageUrl: $imageUrl, rate: $rate, color: $color, supplierName: $supplierName, materialId: $materialId}';
   }
 
 

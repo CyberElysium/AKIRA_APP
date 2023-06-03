@@ -75,21 +75,6 @@ class Alerts {
                       ),
                       const SizedBox(
                         height: 45.0,
-                        // child: RaisedButton(
-                        //   shape: RoundedRectangleBorder(
-                        //     borderRadius: BorderRadius.circular(100),
-                        //   ),
-                        //   onPressed: () => onCloseCallback == null
-                        //       ? Navigator.of(context).pop()
-                        //       : onCloseCallback(),
-                        //   padding: const EdgeInsets.all(10),
-                        //   color: primaryButtonColor,
-                        //   child: Text(
-                        //     button,
-                        //     style: const TextStyle(
-                        //         color: primaryButtonTextColor),
-                        //   ),
-                        // ),
                       ),
                       const SizedBox(
                         height: 8,
@@ -101,6 +86,86 @@ class Alerts {
             ),
           );
         });
+  }
+
+  static void showSuccessMessage(BuildContext context, String message,
+      {String title = "Success!",
+      String button = "OK",
+      Function? onCloseCallback}) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: Colors.green,
+                  size: 48,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: textFieldMain,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    color: gray,
+                    fontSize: 16,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 45,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      primary: primaryButtonColor,
+                    ),
+                    onPressed: () {
+                      if (onCloseCallback != null) {
+                        onCloseCallback();
+                      }
+                      Navigator.of(context).pop();
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/home',
+                            (route) => false,
+                      );
+                    },
+                    child: Text(
+                      button,
+                      style: const TextStyle(
+                        color: primaryButtonTextColor,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   static void showGuestMessage(BuildContext context) {

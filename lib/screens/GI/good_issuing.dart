@@ -7,6 +7,7 @@ import 'package:akira_mobile/models/warehouse.dart';
 import 'package:akira_mobile/utils/alerts.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -259,6 +260,30 @@ class _GoodIssuingState extends State<GoodIssuing> {
         return;
       }
 
+      if (response.statusCode == 404) {
+        Fluttertoast.showToast(
+          msg: "No Material found.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+        return;
+      }
+
+      if (response.statusCode == 204) {
+        Fluttertoast.showToast(
+          msg: "Material not found in this warehouse.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+        return;
+      }
+
       var data = json.decode(response.body)['data'];
       setState(() {
         selectedMaterial = MaterialItem.fromJson(data['stock']);
@@ -311,12 +336,16 @@ class _GoodIssuingState extends State<GoodIssuing> {
               selectedMaterialId, quantity, issueTo, warehouseId!)
           .then((response) {
         if (response.statusCode == 200) {
-          Alerts.showMessage(context, "Material issued successfully");
+
+          // reset the form
           setState(() {
-            selectedMaterialId = '';
+            selectedMaterial = null;
+            selectedMaterialId = "";
             quantity = 0;
-            issueTo = '';
+            issueTo = "";
           });
+
+          Alerts.showSuccessMessage(context, "Material issued successfully");
         } else {
           Alerts.showMessage(context, "Something went wrong");
         }
