@@ -199,6 +199,17 @@ class _GoodIssuingState extends State<GoodIssuing> {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a quantity';
                   }
+                  final double? quantityValue = double.tryParse(value);
+                  if (quantityValue == null) {
+                    return 'Please enter a valid quantity';
+                  }
+                  if (quantityValue < 0) {
+                    return 'Quantity cannot be negative';
+                  }
+                  if (selectedMaterial != null &&
+                      quantityValue > double.parse(selectedMaterial!.quantity)) {
+                    return 'Quantity cannot exceed available quantity';
+                  }
                   // You can add more validation logic for quantity if needed
                   return null;
                 },

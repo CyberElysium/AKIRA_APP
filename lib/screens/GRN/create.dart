@@ -5,6 +5,7 @@ import 'package:akira_mobile/models/material_item.dart';
 import 'package:akira_mobile/models/warehouse.dart';
 import 'package:akira_mobile/utils/alerts.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CreateGRN extends StatefulWidget {
@@ -67,6 +68,13 @@ class _CreateGRNState extends State<CreateGRN> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a quantity';
                     }
+                    final double? quantityValue = double.tryParse(value);
+                    if (quantityValue == null) {
+                      return 'Please enter a valid quantity';
+                    }
+                    if (quantityValue < 0) {
+                      return 'Quantity cannot be negative';
+                    }
                     return null;
                   },
                   onSaved: (value) {
@@ -89,12 +97,6 @@ class _CreateGRNState extends State<CreateGRN> {
                 const SizedBox(height: 16),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Batch'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a batch';
-                    }
-                    return null;
-                  },
                   onSaved: (value) {
                     batch = value!;
                   },
@@ -102,12 +104,6 @@ class _CreateGRNState extends State<CreateGRN> {
                 const SizedBox(height: 16),
                 TextFormField(
                   decoration: const InputDecoration(labelText: 'Invoice'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter an invoice';
-                    }
-                    return null;
-                  },
                   onSaved: (value) {
                     invoice = value!;
                   },
@@ -139,7 +135,7 @@ class _CreateGRNState extends State<CreateGRN> {
                   },
                   readOnly: true,
                   controller: TextEditingController(
-                    text: effDate != null ? effDate.toString() : '',
+                    text: effDate != null ? DateFormat('yyyy-MM-dd').format(effDate!) : DateFormat('yyyy-MM-dd').format(DateTime.now()),
                   ),
                 ),
                 const SizedBox(height: 50),

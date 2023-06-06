@@ -7,6 +7,7 @@ import 'package:akira_mobile/models/uom.dart';
 import 'package:akira_mobile/models/warehouse.dart';
 import 'package:akira_mobile/utils/alerts.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CreateMaterial extends StatefulWidget {
@@ -254,6 +255,12 @@ class _CreateMaterialState extends State<CreateMaterial> {
                       TextFormField(
                         decoration:
                             const InputDecoration(labelText: 'LOCATION'),
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please enter a location';
+                          }
+                          return null;
+                        },
                         onChanged: (value) {
                           setState(() {
                             location = value;
@@ -295,7 +302,7 @@ class _CreateMaterialState extends State<CreateMaterial> {
                         },
                         readOnly: true,
                         controller: TextEditingController(
-                          text: effDate != null ? effDate.toString() : '',
+                          text: effDate != null ? DateFormat('yyyy-MM-dd').format(effDate!) : DateFormat('yyyy-MM-dd').format(DateTime.now()),
                         ),
                       ),
                     ],
