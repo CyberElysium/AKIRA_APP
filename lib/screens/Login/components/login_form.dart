@@ -47,6 +47,8 @@ class _LoginFormState extends State<LoginForm> {
                 padding: EdgeInsets.all(defaultPadding),
                 child: Icon(Icons.person),
               ),
+              fillColor: primaryInputColor,
+              filled: true,
             ),
           ),
           Padding(
@@ -64,6 +66,8 @@ class _LoginFormState extends State<LoginForm> {
                   padding: EdgeInsets.all(defaultPadding),
                   child: Icon(Icons.lock),
                 ),
+                fillColor: primaryInputColor,
+                filled: true,
               ),
             ),
           ),
@@ -74,8 +78,23 @@ class _LoginFormState extends State<LoginForm> {
               onPressed: () {
                 onLogInPress();
               },
+              style: ElevatedButton.styleFrom(
+                primary: kPrimaryColor,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: defaultPadding * 2,
+                  vertical: defaultPadding,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
               child: Text(
                 "Login".toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),

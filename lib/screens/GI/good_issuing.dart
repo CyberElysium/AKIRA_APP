@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:akira_mobile/api/api_calls.dart';
+import 'package:akira_mobile/constants/colors.dart';
 import 'package:akira_mobile/models/material_item.dart';
+import 'package:akira_mobile/models/transaction_type.dart';
 import 'package:akira_mobile/models/warehouse.dart';
 import 'package:akira_mobile/utils/alerts.dart';
 import 'package:flutter/foundation.dart';
@@ -23,6 +25,10 @@ class _GoodIssuingState extends State<GoodIssuing> {
   String issueTo = '';
   int quantity = 0;
   int? warehouseId;
+  String issueType = '';
+  String styleNumber = '';
+  int cutPieces = 0;
+  DateTime? effectiveDate = DateTime.now();
 
   bool showQrScanner = true;
 
@@ -31,12 +37,14 @@ class _GoodIssuingState extends State<GoodIssuing> {
   QRViewController? qrViewController;
 
   List<MaterialItem> materials = [];
+  List<TransactionType> transactionTypes = [];
   MaterialItem? selectedMaterial;
 
   @override
   void initState() {
     super.initState();
     _initializeWarehouse();
+    _fetchTransactionTypes();
     _openQR();
   }
 
@@ -63,7 +71,7 @@ class _GoodIssuingState extends State<GoodIssuing> {
           .map((materialJson) => MaterialItem.fromJson(materialJson)));
       return materialList;
     } else {
-      Alerts.showMessage(context, "Something went wrong");
+      // Alerts.showMessage(context, "Something went wrong");
       return []; // Return an empty list or handle the error case appropriately
     }
   }
@@ -74,172 +82,277 @@ class _GoodIssuingState extends State<GoodIssuing> {
       appBar: AppBar(
         title: const Text('AKIRA Good Issuing'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        selectedMaterialId = '';
-                        selectedMaterial = null;
-                        showQrScanner = !showQrScanner;
-                        if (showQrScanner) {
-                          _openQR();
-                        } else {
-                          qrViewController?.pauseCamera();
-                        }
-                      });
-                    },
-                    icon: Icon(
-                      showQrScanner ? Icons.qr_code_scanner : Icons.list_alt,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          selectedMaterialId = '';
+                          selectedMaterial = null;
+                          showQrScanner = !showQrScanner;
+                          if (showQrScanner) {
+                            _openQR();
+                          } else {
+                            qrViewController?.pauseCamera();
+                          }
+                        });
+                      },
+                      icon: Icon(
+                        showQrScanner ? Icons.qr_code_scanner : Icons.list_alt,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 16.0),
-                ],
-              ),
-              const SizedBox(height: 16.0),
-              if (!showQrScanner && selectedMaterialId.isEmpty)
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Search',
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (query) {
-                    setState(() {
-                      materials = [];
-                    });
-                    _searchMaterials(query);
-                  },
+                    const SizedBox(width: 16.0),
+                  ],
                 ),
-              const SizedBox(height: 16.0),
-              Expanded(
-                child: Stack(
-                  alignment: Alignment.center,
+                const SizedBox(height: 16.0),
+                if (!showQrScanner && selectedMaterialId.isEmpty)
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Search',
+                      border: OutlineInputBorder(),
+                      fillColor: primaryInputColor,
+                      filled: true,
+                    ),
+                    onChanged: (query) {
+                      setState(() {
+                        materials = [];
+                      });
+                      _searchMaterials(query);
+                    },
+                  ),
+                const SizedBox(height: 16.0),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     if (showQrScanner && selectedMaterialId.isEmpty)
-                      QRView(
-                        key: qrKey,
-                        onQRViewCreated: _onQRViewCreated,
+                      SizedBox(
+                        height: 200.0,
+                        child: QRView(
+                          key: qrKey,
+                          onQRViewCreated: _onQRViewCreated,
+                        ),
                       )
                     else if (selectedMaterialId.isEmpty && materials.isEmpty)
                       const Center(
                         child: Text('No materials found.'),
                       )
                     else if (selectedMaterialId.isEmpty)
-                      ListView.builder(
-                        itemCount: materials.length,
-                        itemBuilder: (context, index) {
-                          final material = materials[index];
-                          return Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            margin: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: ListTile(
-                              title: Text(material.name_with_code),
-                              onTap: () {
-                                _getStockMaterialById(material.id);
-                              },
-                            ),
-                          );
-                        },
+                      SizedBox(
+                        height: 200.0,
+                        child: ListView.builder(
+                          itemCount: materials.length,
+                          itemBuilder: (context, index) {
+                            final material = materials[index];
+                            return Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              margin: const EdgeInsets.symmetric(vertical: 4.0),
+                              child: ListTile(
+                                title: Text(material.name_with_code),
+                                onTap: () {
+                                  _getStockMaterialById(material.id);
+                                },
+                              ),
+                            );
+                          },
+                        ),
                       )
                     else
-                        OverflowBox(
-                          minHeight: 200.0,
-                          maxHeight: 200.0,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            margin: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: ListTile(
-                              title: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Material name: ${selectedMaterial!.name}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16.0,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8.0),
-                                  Text('Code: ${selectedMaterial!.code}'),
-                                  Text('UOM: ${selectedMaterial!.uom_name}'),
-                                  Text('Category: ${selectedMaterial!.category_name}'),
-                                  Text('Available Quantity: ${selectedMaterial!.quantity}'),
-                                  Text('SKU: ${selectedMaterial!.sku}'),
-                                ],
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        margin: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: ListTile(
+                          title: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Material name: ${selectedMaterial!.name}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16.0,
+                                ),
                               ),
-                            ),
+                              const SizedBox(height: 8.0),
+                              Text('Code: ${selectedMaterial!.code}'),
+                              Text('UOM: ${selectedMaterial!.uom_name}'),
+                              Text(
+                                  'Category: ${selectedMaterial!.category_name}'),
+                              Text(
+                                  'Available Quantity: ${selectedMaterial!.quantity}'),
+                              Text('SKU: ${selectedMaterial!.sku}'),
+                            ],
                           ),
-                        )
-
+                        ),
+                      )
                   ],
                 ),
-              ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Quantity',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 16.0),
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(
+                    labelText: 'Issue Type',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
+                  items: transactionTypes.map((type) {
+                    return DropdownMenuItem<String>(
+                      value: type.id.toString(),
+                      child: Text(type.name),
+                    );
+                  }).toList(),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a UOM';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    setState(() {
+                      issueType = value!;
+                    });
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a quantity';
-                  }
-                  final double? quantityValue = double.tryParse(value);
-                  if (quantityValue == null) {
-                    return 'Please enter a valid quantity';
-                  }
-                  if (quantityValue < 0) {
-                    return 'Quantity cannot be negative';
-                  }
-                  if (selectedMaterial != null &&
-                      quantityValue > double.parse(selectedMaterial!.quantity)) {
-                    return 'Quantity cannot exceed available quantity';
-                  }
-                  // You can add more validation logic for quantity if needed
-                  return null;
-                },
-                onSaved: (value) {
-                  quantity = int.parse(value!);
-                },
-              ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Issue To',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Style Number',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a style number';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) {
+                    styleNumber = value!;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a name';
-                  }
-                  // You can add more validation logic for the issueTo field if needed
-                  return null;
-                },
-                onSaved: (value) {
-                  issueTo = value!;
-                },
-              ),
-              const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: _confirmInputs,
-                child: const Text('Issue'),
-              ),
-            ],
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Yardage',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a valid yardage';
+                    }
+                    final double? quantityValue = double.tryParse(value);
+                    if (quantityValue == null) {
+                      return 'Please enter a valid number';
+                    }
+                    if (quantityValue < 0) {
+                      return 'Yardage cannot be negative';
+                    }
+                    if (selectedMaterial != null &&
+                        quantityValue >
+                            double.parse(selectedMaterial!.quantity)) {
+                      return 'Yardage cannot be greater than available quantity';
+                    }
+                    // You can add more validation logic for quantity if needed
+                    return null;
+                  },
+                  onSaved: (value) {
+                    quantity = int.parse(value!);
+                  },
+                ),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Cut Pieces',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
+                  onSaved: (value) {
+                    if (value == null || value.isEmpty) {
+                      cutPieces = 0;
+                      return;
+                    }else{
+                      cutPieces = int.parse(value);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Issue To (Location)',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
+                  onSaved: (value) {
+                    issueTo = value!;
+                  },
+                ),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Effective Date',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
+                  onTap: () async {
+                    final selectedDate = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100),
+                    );
+                    if (selectedDate != null) {
+                      setState(() {
+                        effectiveDate = selectedDate;
+                      });
+                    }
+                  },
+                  validator: (value) {
+                    if (effectiveDate == null) {
+                      return 'Please select an effective date';
+                    }
+                    return null;
+                  },
+                  readOnly: true,
+                  controller: TextEditingController(
+                    text: effectiveDate != null
+                        ? '${effectiveDate!.day}/${effectiveDate!.month}/${effectiveDate!.year}'
+                        : '',
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                ElevatedButton(
+                  onPressed: _confirmInputs,
+                  child: const Text(
+                    'Issue',
+                    style: TextStyle(
+                      fontSize: 15.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -348,11 +461,20 @@ class _GoodIssuingState extends State<GoodIssuing> {
         return;
       }
 
-      ApiCalls.issueMaterial(
-              selectedMaterialId, quantity, issueTo, warehouseId!)
+      if (issueType.isEmpty) {
+        Alerts.showMessage(context, "Please select an issue type");
+        return;
+      }
+
+      if (effectiveDate == null) {
+        Alerts.showMessage(context, "Please select an effective date");
+        return;
+      }
+
+      ApiCalls.issueMaterial(selectedMaterialId, quantity, issueTo,
+              warehouseId!, styleNumber, cutPieces, issueType, effectiveDate!)
           .then((response) {
         if (response.statusCode == 200) {
-
           // reset the form
           setState(() {
             selectedMaterial = null;
@@ -373,5 +495,30 @@ class _GoodIssuingState extends State<GoodIssuing> {
   void dispose() {
     qrViewController?.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchTransactionTypes() async {
+    try {
+      final response = await ApiCalls.getTransactionTypes();
+
+      if (!mounted) {
+        return;
+      }
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body)['data'];
+        print(data['types']);
+        final transactionTypesList = List<TransactionType>.from(
+            data['types'].map((types) => TransactionType.fromJson(types)));
+        setState(() {
+          transactionTypes = transactionTypesList;
+        });
+      } else {
+        // Alerts.showMessage(context, "Something went wrong");
+      }
+    } catch (error) {
+      print('Error: $error');
+      // Handle error
+    }
   }
 }

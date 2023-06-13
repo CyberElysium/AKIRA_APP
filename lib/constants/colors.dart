@@ -23,6 +23,8 @@ const selectedTextColor = Color(0xFFD3B9E3);
 const greyColor = Color(0xFFBCBDBF);
 const greyLightColor = Color(0xFFE5E6E8);
 
-const kPrimaryColor = Color(0xFF6F35A5);
+const kPrimaryColor = Color(0xFFEF6C00);
 const kPrimaryLightColor = Color(0xFFF1E6FF);
+
+const primaryInputColor = Color(0xFFFFF3E0);
 

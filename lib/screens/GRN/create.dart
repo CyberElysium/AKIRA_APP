@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:akira_mobile/api/api_calls.dart';
+import 'package:akira_mobile/constants/colors.dart';
+import 'package:akira_mobile/models/material_data.dart';
 import 'package:akira_mobile/models/material_item.dart';
 import 'package:akira_mobile/models/warehouse.dart';
 import 'package:akira_mobile/utils/alerts.dart';
@@ -20,12 +22,12 @@ class _CreateGRNState extends State<CreateGRN> {
   String location = '';
   String batch = '';
   String invoice = '';
-  DateTime? effDate;
+  DateTime? effDate = DateTime.now();
 
   final _formKey = GlobalKey<FormState>();
 
-  List<MaterialItem> materials = [];
-  MaterialItem? selectedMaterial;
+  List<MaterialData> materials = [];
+  MaterialData? selectedMaterial;
 
   @override
   void initState() {
@@ -47,21 +49,108 @@ class _CreateGRNState extends State<CreateGRN> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Material Code'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a Material code';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    material = value!;
-                  },
+                if (selectedMaterial == null)
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: 'Search Material',
+                      border: OutlineInputBorder(),
+                      fillColor: primaryInputColor,
+                      filled: true,
+                    ),
+                    onChanged: (query) {
+                      setState(() {
+                        materials = [];
+                      });
+                      _searchMaterials(query);
+                    },
+                  ),
+                const SizedBox(height: 16.0),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (materials.isNotEmpty)
+                      SizedBox(
+                        height: 250,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: materials.length,
+                          itemBuilder: (context, index) {
+                            final material = materials[index];
+                            return Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              margin: const EdgeInsets.symmetric(vertical: 4.0),
+                              child: ListTile(
+                                title: Text(material.nameWithCode),
+                                onTap: () {
+                                  setState(() {
+                                    selectedMaterial = material;
+                                    materials = [];
+                                  });
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    if (selectedMaterial != null && materials.isEmpty)
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        margin: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: ListTile(
+                          title: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Material name: ${selectedMaterial!.name}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16.0,
+                                ),
+                              ),
+                              const SizedBox(height: 8.0),
+                              Text('Code: ${selectedMaterial!.code}'),
+                              Text('UOM: ${selectedMaterial!.uomName}'),
+                              Text(
+                                  'Category: ${selectedMaterial!.categoryName}'),
+
+                              // show image using url
+                              if (selectedMaterial!.imageUrl != null)
+                                Image.network(selectedMaterial!.imageUrl!),
+
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.delete),
+                                    color: Colors.red,
+                                    onPressed: () {
+                                      setState(() {
+                                        selectedMaterial = null;
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                  ],
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Quantity'),
+                  decoration: const InputDecoration(
+                    labelText: 'Quantity',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   validator: (value) {
@@ -83,7 +172,12 @@ class _CreateGRNState extends State<CreateGRN> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Location'),
+                  decoration: const InputDecoration(
+                    labelText: 'Location',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a location';
@@ -96,22 +190,36 @@ class _CreateGRNState extends State<CreateGRN> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Batch'),
+                  decoration: const InputDecoration(
+                    labelText: 'Batch',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
                   onSaved: (value) {
                     batch = value!;
                   },
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Invoice'),
+                  decoration: const InputDecoration(
+                    labelText: 'Invoice',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
                   onSaved: (value) {
                     invoice = value!;
                   },
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  decoration:
-                      const InputDecoration(labelText: 'Effective Date'),
+                  decoration: const InputDecoration(
+                    labelText: 'Effective Date',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter an effective date';
@@ -135,7 +243,9 @@ class _CreateGRNState extends State<CreateGRN> {
                   },
                   readOnly: true,
                   controller: TextEditingController(
-                    text: effDate != null ? DateFormat('yyyy-MM-dd').format(effDate!) : DateFormat('yyyy-MM-dd').format(DateTime.now()),
+                    text: effDate != null
+                        ? DateFormat('yyyy-MM-dd').format(effDate!)
+                        : DateFormat('yyyy-MM-dd').format(DateTime.now()),
                   ),
                 ),
                 const SizedBox(height: 50),
@@ -147,7 +257,10 @@ class _CreateGRNState extends State<CreateGRN> {
                       onPressed: _submitForm,
                       child: const Text(
                         'Submit',
-                        style: TextStyle(fontSize: 16),
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
                       ),
                     ),
                   ),
@@ -169,6 +282,32 @@ class _CreateGRNState extends State<CreateGRN> {
     });
   }
 
+  Future<List<MaterialData>> fetchMaterialsFromAPI(String query) async {
+    final response = await ApiCalls.getMaterialList(query);
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body)['data'];
+      print(data);
+      final materialList = List<MaterialData>.from(data['materials']
+          .map((materialJson) => MaterialData.fromJson(materialJson)));
+      return materialList;
+    } else {
+      Alerts.showMessage(context, "Something went wrong");
+      return []; // Return an empty list or handle the error case appropriately
+    }
+  }
+
+  void _searchMaterials(String query) async {
+    if (query.isNotEmpty) {
+      setState(() {
+        materials = [];
+      });
+      final materialList = await fetchMaterialsFromAPI(query);
+      setState(() {
+        materials = materialList;
+      });
+    }
+  }
+
   void _submitForm() {
     // Validate the form inputs
     if (!_formKey.currentState!.validate()) {
@@ -177,6 +316,8 @@ class _CreateGRNState extends State<CreateGRN> {
 
     // Save form inputs
     _formKey.currentState!.save();
+
+    material = selectedMaterial!.code;
 
     // Display a confirmation dialog
     showDialog(
@@ -222,7 +363,6 @@ class _CreateGRNState extends State<CreateGRN> {
     );
   }
 
-
   void _submitGRNForm() async {
     // Display a loading dialog
     showDialog(
@@ -248,17 +388,13 @@ class _CreateGRNState extends State<CreateGRN> {
 
     if (response.statusCode == 200) {
       Alerts.showSuccessMessage(context, "GRN created successfully");
-
     } else {
       if (response.statusCode == 401) {
-        Alerts.showMessage(
-            context, json.decode(response.body)['message']);
-      } else if(response.statusCode == 422) {
-        Alerts.showMessage(
-            context, json.decode(response.body)['message']);
+        Alerts.showMessage(context, json.decode(response.body)['message']);
+      } else if (response.statusCode == 422) {
+        Alerts.showMessage(context, json.decode(response.body)['message']);
       } else {
-        Alerts.showMessage(
-            context, "Something went wrong");
+        Alerts.showMessage(context, "Something went wrong");
       }
     }
   }

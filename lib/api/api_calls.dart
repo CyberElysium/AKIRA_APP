@@ -104,6 +104,13 @@ class ApiCalls {
     return response;
   }
 
+  static Future<Response> getMaterialList(query) async {
+    var url = Uri.parse("${baseUrl}materials/select/list?query=$query");
+    var headers = await _headerWithToken();
+    var response = await get(url, headers: headers);
+    return response;
+  }
+
   static Future<Response> getMaterialBySKU(String code) async {
     var url = Uri.parse("${baseUrl}materials/by-sku/$code");
     var headers = await _headerWithToken();
@@ -118,14 +125,18 @@ class ApiCalls {
     return response;
   }
 
-  static Future<Response> issueMaterial(String materialId, int quantity,String issueTo, int warehouseId) async {
+  static Future<Response> issueMaterial(String materialId, int quantity,String issueTo, int warehouseId, String? styleNumber, int cutPieces, String issueType, DateTime effectiveDate) async {
     var url = Uri.parse("${baseUrl}gi/issue");
     var headers = await _headerWithToken();
     var payload = {
       "stock_id": materialId,
       "qty": quantity,
       "issue_to": issueTo,
-      "warehouse_id": warehouseId
+      "warehouse_id": warehouseId,
+      "style_no": styleNumber,
+      "cut_pieces": cutPieces,
+      "transaction_type_id": issueType,
+      "eff_date": effectiveDate.toString()
     };
     var response = await post(url, headers: headers, body: json.encode(payload));
     return response;
@@ -209,6 +220,13 @@ class ApiCalls {
       "eff_date": dateTime.toIso8601String()
     };
     var response = post(url, headers: headers, body: json.encode(payload));
+    return response;
+  }
+
+  static Future<Response> getTransactionTypes() async {
+    var url = Uri.parse("${baseUrl}transaction-types/list/gi");
+    var headers = await _headerWithToken();
+    var response = await get(url, headers: headers);
     return response;
   }
 

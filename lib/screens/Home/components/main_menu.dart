@@ -1,4 +1,5 @@
 import 'package:akira_mobile/api/api_calls.dart';
+import 'package:akira_mobile/constants/colors.dart';
 import 'package:akira_mobile/models/warehouse.dart';
 import 'package:akira_mobile/screens/GI/good_issuing.dart';
 import 'package:akira_mobile/screens/GRN/create.dart';
@@ -36,7 +37,7 @@ class _MainMenuState extends State<MainMenu> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 23,
-                      color: Colors.green,
+                      color: kPrimaryColor,
                     ),
                   ),
                   Text(
@@ -48,7 +49,7 @@ class _MainMenuState extends State<MainMenu> {
                 ],
               ),
               IconButton(
-                icon: const Icon(Icons.restore),
+                icon: const Icon(Icons.sync),
                 onPressed: _resetConfirmation,
               ),
             ],
@@ -218,7 +219,7 @@ class _MainMenuState extends State<MainMenu> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: const [
                               Icon(
-                                Icons.grain,
+                                Icons.move_to_inbox,
                                 size: 80,
                                 color: Colors.black,
                               ),

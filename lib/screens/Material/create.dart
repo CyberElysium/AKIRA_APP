@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:akira_mobile/api/api_calls.dart';
+import 'package:akira_mobile/constants/colors.dart';
 import 'package:akira_mobile/models/category.dart';
 import 'package:akira_mobile/models/supplier.dart';
 import 'package:akira_mobile/models/uom.dart';
@@ -37,7 +38,7 @@ class _CreateMaterialState extends State<CreateMaterial> {
   String location = '';
   String batch = '';
   String invoice = '';
-  DateTime? effDate;
+  DateTime? effDate = DateTime.now();
 
   List<UOM> uomOptions = [];
   List<Category> categoryOptions = [];
@@ -66,7 +67,12 @@ class _CreateMaterialState extends State<CreateMaterial> {
             child: Column(
               children: [
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Name'),
+                  decoration: const InputDecoration(
+                    labelText: 'Name',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
                   validator: (value) {
                     if (value!.isEmpty) {
                       return 'Please enter a name';
@@ -81,7 +87,12 @@ class _CreateMaterialState extends State<CreateMaterial> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'UOM'),
+                  decoration: const InputDecoration(
+                    labelText: 'UOM',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
                   items: uomOptions.map((uom) {
                     return DropdownMenuItem<String>(
                       value: uom.id.toString(),
@@ -102,7 +113,12 @@ class _CreateMaterialState extends State<CreateMaterial> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'Category'),
+                  decoration: const InputDecoration(
+                    labelText: 'Category',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
                   items: categoryOptions.map((category) {
                     return DropdownMenuItem<String>(
                       value: category.id.toString(),
@@ -123,7 +139,12 @@ class _CreateMaterialState extends State<CreateMaterial> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Rate'),
+                  decoration: const InputDecoration(
+                    labelText: 'Rate',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   validator: (value) {
@@ -140,7 +161,12 @@ class _CreateMaterialState extends State<CreateMaterial> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'Supplier'),
+                  decoration: const InputDecoration(
+                    labelText: 'Supplier',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
                   items: supplierOptions.map((supplier) {
                     return DropdownMenuItem<String>(
                       value: supplier.id.toString(),
@@ -155,7 +181,12 @@ class _CreateMaterialState extends State<CreateMaterial> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Color'),
+                  decoration: const InputDecoration(
+                    labelText: 'Color',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
                   onChanged: (value) {
                     setState(() {
                       color = value;
@@ -164,8 +195,12 @@ class _CreateMaterialState extends State<CreateMaterial> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  decoration:
-                      const InputDecoration(labelText: 'WIDTH (inches)'),
+                  decoration: const InputDecoration(
+                    labelText: 'WIDTH (inches)',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   onChanged: (value) {
@@ -176,8 +211,12 @@ class _CreateMaterialState extends State<CreateMaterial> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  decoration:
-                      const InputDecoration(labelText: 'HEIGHT (inches)'),
+                  decoration: const InputDecoration(
+                    labelText: 'HEIGHT (inches)',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   onChanged: (value) {
@@ -188,8 +227,12 @@ class _CreateMaterialState extends State<CreateMaterial> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  decoration:
-                      const InputDecoration(labelText: 'LENGTH (inches)'),
+                  decoration: const InputDecoration(
+                    labelText: 'LENGTH (inches)',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   onChanged: (value) {
@@ -200,7 +243,12 @@ class _CreateMaterialState extends State<CreateMaterial> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'SIZE (inches)'),
+                  decoration: const InputDecoration(
+                    labelText: 'SIZE (inches)',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   onChanged: (value) {
@@ -211,7 +259,12 @@ class _CreateMaterialState extends State<CreateMaterial> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'WEIGHT (kg)'),
+                  decoration: const InputDecoration(
+                    labelText: 'WEIGHT (kg)',
+                    border: OutlineInputBorder(),
+                    fillColor: primaryInputColor,
+                    filled: true,
+                  ),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   onChanged: (value) {
@@ -235,8 +288,12 @@ class _CreateMaterialState extends State<CreateMaterial> {
                     children: [
                       const SizedBox(height: 16),
                       TextFormField(
-                        decoration:
-                            const InputDecoration(labelText: 'QUANTITY'),
+                        decoration: const InputDecoration(
+                          labelText: 'QUANTITY',
+                          border: OutlineInputBorder(),
+                          fillColor: primaryInputColor,
+                          filled: true,
+                        ),
                         keyboardType: const TextInputType.numberWithOptions(
                             decimal: true),
                         validator: (value) {
@@ -253,8 +310,12 @@ class _CreateMaterialState extends State<CreateMaterial> {
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
-                        decoration:
-                            const InputDecoration(labelText: 'LOCATION'),
+                        decoration: const InputDecoration(
+                          labelText: 'LOCATION',
+                          border: OutlineInputBorder(),
+                          fillColor: primaryInputColor,
+                          filled: true,
+                        ),
                         validator: (value) {
                           if (value!.isEmpty) {
                             return 'Please enter a location';
@@ -269,7 +330,12 @@ class _CreateMaterialState extends State<CreateMaterial> {
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
-                        decoration: const InputDecoration(labelText: 'BATCH'),
+                        decoration: const InputDecoration(
+                          labelText: 'BATCH',
+                          border: OutlineInputBorder(),
+                          fillColor: primaryInputColor,
+                          filled: true,
+                        ),
                         onChanged: (value) {
                           setState(() {
                             batch = value;
@@ -278,7 +344,12 @@ class _CreateMaterialState extends State<CreateMaterial> {
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
-                        decoration: const InputDecoration(labelText: 'INVOICE'),
+                        decoration: const InputDecoration(
+                          labelText: 'INVOICE',
+                          border: OutlineInputBorder(),
+                          fillColor: primaryInputColor,
+                          filled: true,
+                        ),
                         onChanged: (value) {
                           setState(() {
                             invoice = value;
@@ -287,8 +358,12 @@ class _CreateMaterialState extends State<CreateMaterial> {
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
-                        decoration:
-                            const InputDecoration(labelText: 'EFF DATE'),
+                        decoration: const InputDecoration(
+                          labelText: 'EFF DATE',
+                          border: OutlineInputBorder(),
+                          fillColor: primaryInputColor,
+                          filled: true,
+                        ),
                         onTap: () async {
                           DateTime? pickedDate = await showDatePicker(
                             context: context,
@@ -302,7 +377,9 @@ class _CreateMaterialState extends State<CreateMaterial> {
                         },
                         readOnly: true,
                         controller: TextEditingController(
-                          text: effDate != null ? DateFormat('yyyy-MM-dd').format(effDate!) : DateFormat('yyyy-MM-dd').format(DateTime.now()),
+                          text: effDate != null
+                              ? DateFormat('yyyy-MM-dd').format(effDate!)
+                              : DateFormat('yyyy-MM-dd').format(DateTime.now()),
                         ),
                       ),
                     ],
@@ -310,7 +387,13 @@ class _CreateMaterialState extends State<CreateMaterial> {
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: submitForm,
-                  child: const Text('Create'),
+                  child: const Text(
+                    'Create',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -323,7 +406,7 @@ class _CreateMaterialState extends State<CreateMaterial> {
   Future<void> _initializeWarehouse() async {
     final prefs = await SharedPreferences.getInstance();
     Warehouse warehouse =
-    Warehouse.fromJson(json.decode(prefs.getString('activeWarehouse')!));
+        Warehouse.fromJson(json.decode(prefs.getString('activeWarehouse')!));
     setState(() {
       warehouseId = warehouse.id;
     });
@@ -517,11 +600,9 @@ class _CreateMaterialState extends State<CreateMaterial> {
       print(response.statusCode);
       if (response.statusCode == 200) {
         Alerts.showSuccessMessage(context, "Material created successfully");
-
       } else {
         if (response.statusCode == 401) {
-          Alerts.showMessage(
-              context, json.decode(response.body)['message']);
+          Alerts.showMessage(context, json.decode(response.body)['message']);
         } else {
           Alerts.showMessage(context, "Something went wrong");
         }
