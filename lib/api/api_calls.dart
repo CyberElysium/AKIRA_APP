@@ -5,20 +5,19 @@ import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiCalls {
-  // static const String baseUrl = "http://10.0.2.2:8000/api/";
-  static const String baseUrl = "https://akira.cyberelysium.xyz/api/";
+  static const String baseUrl = "http://10.0.2.2:8000/api/";
+
+  // static const String baseUrl = "https://akira.cyberelysium.xyz/api/";
   // static const String baseUrl = "https://akira.cyberelysium.live/api/";
 
   static _emptyHeaders() {
-    return {
-      "Accept": "application/json",
-      "Content-Type": "application/json"
-    };
+    return {"Accept": "application/json", "Content-Type": "application/json"};
   }
 
   static Future<Map<String, String>> _headerWithToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var token = prefs.getString('access_token'); // Get the token from SharedPreferences
+    var token =
+        prefs.getString('access_token'); // Get the token from SharedPreferences
 
     var headers = {
       "Accept": "application/json",
@@ -31,7 +30,8 @@ class ApiCalls {
 
   static Future<Map<String, String>> _headerWithTokenAndMultipart() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var token = prefs.getString('access_token'); // Get the token from SharedPreferences
+    var token =
+        prefs.getString('access_token'); // Get the token from SharedPreferences
 
     var headers = {
       "Accept": "application/json",
@@ -48,14 +48,14 @@ class ApiCalls {
     return response;
   }
 
-  static Future<Response> login({required String username, required String pin, required String deviceName}) async {
+  static Future<Response> login(
+      {required String username,
+      required String pin,
+      required String deviceName}) async {
     var url = Uri.parse("${baseUrl}login");
-    var payload = {
-      "username": username,
-      "pin": pin,
-      "device_name": deviceName
-    };
-    var response = await post(url, headers: _emptyHeaders(), body: json.encode(payload));
+    var payload = {"username": username, "pin": pin, "device_name": deviceName};
+    var response =
+        await post(url, headers: _emptyHeaders(), body: json.encode(payload));
     return response;
   }
 
@@ -83,10 +83,9 @@ class ApiCalls {
   static Future<Response> setActiveWarehouse(int warehouseId) async {
     var url = Uri.parse("${baseUrl}user/active/warehouse");
     var headers = await _headerWithToken();
-    var payload = {
-      "warehouse_id": warehouseId
-    };
-    var response = await post(url, headers: headers, body: json.encode(payload));
+    var payload = {"warehouse_id": warehouseId};
+    var response =
+        await post(url, headers: headers, body: json.encode(payload));
     return response;
   }
 
@@ -125,7 +124,15 @@ class ApiCalls {
     return response;
   }
 
-  static Future<Response> issueMaterial(String materialId, int quantity,String issueTo, int warehouseId, String? styleNumber, int cutPieces, String issueType, DateTime effectiveDate) async {
+  static Future<Response> issueMaterial(
+      String materialId,
+      int quantity,
+      String issueTo,
+      int warehouseId,
+      String? styleNumber,
+      int cutPieces,
+      String issueType,
+      DateTime effectiveDate) async {
     var url = Uri.parse("${baseUrl}gi/issue");
     var headers = await _headerWithToken();
     var payload = {
@@ -138,7 +145,8 @@ class ApiCalls {
       "transaction_type_id": issueType,
       "eff_date": effectiveDate.toString()
     };
-    var response = await post(url, headers: headers, body: json.encode(payload));
+    var response =
+        await post(url, headers: headers, body: json.encode(payload));
     return response;
   }
 
@@ -149,7 +157,8 @@ class ApiCalls {
     return response;
   }
 
-  static Future<StreamedResponse> uploadImage(File file, int? materialId) async {
+  static Future<StreamedResponse> uploadImage(
+      File file, int? materialId) async {
     var url = Uri.parse("${baseUrl}materials/update/image/$materialId");
     var headers = await _headerWithTokenAndMultipart();
     var request = MultipartRequest('POST', url);
@@ -180,7 +189,24 @@ class ApiCalls {
     return response;
   }
 
-  static createMaterial({required String name, required String uom, required String category, double? rate, String? supplier, String? color, double? width, double? height, double? length, double? size, double? weight, double? quantity, String? location, String? batch, String? invoice, DateTime? effDate, int? warehouseId}) async {
+  static createMaterial(
+      {required String name,
+      required String uom,
+      required String category,
+      double? rate,
+      String? supplier,
+      String? color,
+      double? width,
+      double? height,
+      double? length,
+      double? size,
+      double? weight,
+      double? quantity,
+      String? location,
+      String? batch,
+      String? invoice,
+      DateTime? effDate,
+      int? warehouseId}) async {
     var url = Uri.parse("${baseUrl}materials/create");
     var headers = await _headerWithToken();
     var payload = {
@@ -207,7 +233,17 @@ class ApiCalls {
     return response;
   }
 
-  static createGRN(int warehouseId, String material, double quantity, String? location, String? batch, String invoice, DateTime dateTime) async {
+  static createGRN(
+      int warehouseId,
+      String material,
+      double quantity,
+      String? location,
+      String? batch,
+      String invoice,
+      DateTime dateTime,
+      int? type,
+      int? supplierId,
+      [String? goodIssueCode]) async {
     var url = Uri.parse("${baseUrl}grn/create");
     var headers = await _headerWithToken();
     var payload = {
@@ -217,7 +253,10 @@ class ApiCalls {
       "location": location,
       "batch": batch,
       "invoice": invoice,
-      "eff_date": dateTime.toIso8601String()
+      "eff_date": dateTime.toIso8601String(),
+      "type": type,
+      "supplier_id": supplierId,
+      "gi_code": goodIssueCode
     };
     var response = post(url, headers: headers, body: json.encode(payload));
     return response;
@@ -230,7 +269,17 @@ class ApiCalls {
     return response;
   }
 
+  static Future<Response> getSupplierList(query) async {
+    var url = Uri.parse("${baseUrl}suppliers/select/list?query=$query");
+    var headers = await _headerWithToken();
+    var response = await get(url, headers: headers);
+    return response;
+  }
 
-
-
+  static Future<Response> getGoodIssuingList(query) async {
+    var url = Uri.parse("${baseUrl}gi/select/list?query=$query");
+    var headers = await _headerWithToken();
+    var response = await get(url, headers: headers);
+    return response;
+  }
 }

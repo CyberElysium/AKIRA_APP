@@ -31,6 +31,7 @@ class _GoodIssuingState extends State<GoodIssuing> {
   DateTime? effectiveDate = DateTime.now();
 
   bool showQrScanner = true;
+  bool isLoading = false;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
@@ -247,14 +248,14 @@ class _GoodIssuingState extends State<GoodIssuing> {
                 TextFormField(
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
-                    labelText: 'Yardage',
+                    labelText: 'Yardage / QTY',
                     border: OutlineInputBorder(),
                     fillColor: primaryInputColor,
                     filled: true,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter a valid yardage';
+                      return 'Please enter a valid number';
                     }
                     final double? quantityValue = double.tryParse(value);
                     if (quantityValue == null) {
@@ -341,8 +342,18 @@ class _GoodIssuingState extends State<GoodIssuing> {
                 ),
                 const SizedBox(height: 16.0),
                 ElevatedButton(
-                  onPressed: _confirmInputs,
-                  child: const Text(
+                  onPressed: isLoading ? null : () {
+                    setState(() {
+                      isLoading = true;
+                    });
+                    _confirmInputs();
+                  },
+                  // Hide the button if isLoading is true
+                  style: isLoading ? const ButtonStyle().copyWith(backgroundColor: MaterialStateProperty.all(Colors.transparent)) : null,
+                  // Show a loader if isLoading is true
+                  child: isLoading
+                      ? const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white))
+                      : const Text(
                     'Issue',
                     style: TextStyle(
                       fontSize: 15.0,
@@ -456,17 +467,30 @@ class _GoodIssuingState extends State<GoodIssuing> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
+      setState(() {
+        isLoading = true;
+      });
+
       if (selectedMaterialId.isEmpty) {
+        setState(() {
+          isLoading = false;
+        });
         Alerts.showMessage(context, "Please select a material");
         return;
       }
 
       if (issueType.isEmpty) {
+        setState(() {
+          isLoading = false;
+        });
         Alerts.showMessage(context, "Please select an issue type");
         return;
       }
 
       if (effectiveDate == null) {
+        setState(() {
+          isLoading = false;
+        });
         Alerts.showMessage(context, "Please select an effective date");
         return;
       }
@@ -485,6 +509,9 @@ class _GoodIssuingState extends State<GoodIssuing> {
 
           Alerts.showSuccessMessage(context, "Material issued successfully");
         } else {
+          setState(() {
+            isLoading = false;
+          });
           Alerts.showMessage(context, "Something went wrong");
         }
       });

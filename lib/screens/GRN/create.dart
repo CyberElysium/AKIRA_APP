@@ -1,14 +1,8 @@
-import 'dart:convert';
-
-import 'package:akira_mobile/api/api_calls.dart';
-import 'package:akira_mobile/constants/colors.dart';
-import 'package:akira_mobile/models/material_data.dart';
-import 'package:akira_mobile/models/material_item.dart';
-import 'package:akira_mobile/models/warehouse.dart';
-import 'package:akira_mobile/utils/alerts.dart';
+import 'package:akira_mobile/screens/GRN/components/general_form.dart';
+import 'package:akira_mobile/screens/GRN/components/production_return_form.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../constants/colors.dart';
 
 class CreateGRN extends StatefulWidget {
   @override
@@ -16,23 +10,14 @@ class CreateGRN extends StatefulWidget {
 }
 
 class _CreateGRNState extends State<CreateGRN> {
-  int? warehouseId;
-  String material = '';
-  double quantity = 0;
-  String location = '';
-  String batch = '';
-  String invoice = '';
-  DateTime? effDate = DateTime.now();
-
-  final _formKey = GlobalKey<FormState>();
-
-  List<MaterialData> materials = [];
-  MaterialData? selectedMaterial;
+  int? type = 0;
+  String? selectedDropdownItem;
+  List<String> dropdownItems = ['General', 'Production Return'];
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    _initializeWarehouse();
   }
 
   @override
@@ -47,224 +32,39 @@ class _CreateGRNState extends State<CreateGRN> {
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (selectedMaterial == null)
-                  TextFormField(
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8.0,
+                      horizontal: 16.0
+                  ),
+                  child: DropdownButtonFormField<String>(
                     decoration: const InputDecoration(
-                      labelText: 'Search Material',
+                      labelText: 'GRN Type',
                       border: OutlineInputBorder(),
                       fillColor: primaryInputColor,
                       filled: true,
                     ),
-                    onChanged: (query) {
+                    value: selectedDropdownItem,
+                    onChanged: (value) {
                       setState(() {
-                        materials = [];
+                        selectedDropdownItem = value;
                       });
-                      _searchMaterials(query);
                     },
-                  ),
-                const SizedBox(height: 16.0),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (materials.isNotEmpty)
-                      SizedBox(
-                        height: 250,
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: materials.length,
-                          itemBuilder: (context, index) {
-                            final material = materials[index];
-                            return Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey),
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              margin: const EdgeInsets.symmetric(vertical: 4.0),
-                              child: ListTile(
-                                title: Text(material.nameWithCode),
-                                onTap: () {
-                                  setState(() {
-                                    selectedMaterial = material;
-                                    materials = [];
-                                  });
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    if (selectedMaterial != null && materials.isEmpty)
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        margin: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: ListTile(
-                          title: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Material name: ${selectedMaterial!.name}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16.0,
-                                ),
-                              ),
-                              const SizedBox(height: 8.0),
-                              Text('Code: ${selectedMaterial!.code}'),
-                              Text('UOM: ${selectedMaterial!.uomName}'),
-                              Text(
-                                  'Category: ${selectedMaterial!.categoryName}'),
-
-                              // show image using url
-                              if (selectedMaterial!.imageUrl != null)
-                                Image.network(selectedMaterial!.imageUrl!),
-
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.delete),
-                                    color: Colors.red,
-                                    onPressed: () {
-                                      setState(() {
-                                        selectedMaterial = null;
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                  ],
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Quantity',
-                    border: OutlineInputBorder(),
-                    fillColor: primaryInputColor,
-                    filled: true,
-                  ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a quantity';
-                    }
-                    final double? quantityValue = double.tryParse(value);
-                    if (quantityValue == null) {
-                      return 'Please enter a valid quantity';
-                    }
-                    if (quantityValue < 0) {
-                      return 'Quantity cannot be negative';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    quantity = double.parse(value!);
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Location',
-                    border: OutlineInputBorder(),
-                    fillColor: primaryInputColor,
-                    filled: true,
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a location';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    location = value!;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Batch',
-                    border: OutlineInputBorder(),
-                    fillColor: primaryInputColor,
-                    filled: true,
-                  ),
-                  onSaved: (value) {
-                    batch = value!;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Invoice',
-                    border: OutlineInputBorder(),
-                    fillColor: primaryInputColor,
-                    filled: true,
-                  ),
-                  onSaved: (value) {
-                    invoice = value!;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Effective Date',
-                    border: OutlineInputBorder(),
-                    fillColor: primaryInputColor,
-                    filled: true,
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter an effective date';
-                    }
-                    return null;
-                  },
-                  onTap: () {
-                    // Show date picker
-                    showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2100),
-                    ).then((selectedDate) {
-                      if (selectedDate != null) {
-                        setState(() {
-                          effDate = selectedDate;
-                        });
-                      }
-                    });
-                  },
-                  readOnly: true,
-                  controller: TextEditingController(
-                    text: effDate != null
-                        ? DateFormat('yyyy-MM-dd').format(effDate!)
-                        : DateFormat('yyyy-MM-dd').format(DateTime.now()),
+                    items: dropdownItems.map((String item) {
+                      return DropdownMenuItem<String>(
+                        value: item,
+                        child: Text(item),
+                      );
+                    }).toList(),
                   ),
                 ),
-                const SizedBox(height: 50),
-                Center(
-                  child: SizedBox(
-                    width: 150,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _submitForm,
-                      child: const Text(
-                        'Submit',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
+                // Load the related widget based on the selected item
+                if (selectedDropdownItem == 'General') GeneralForm(),
+                if (selectedDropdownItem == 'Production Return')
+                  ProductionReturnForm(),
+                // Add your other widgets here
+                // ...
               ],
             ),
           ),
@@ -273,129 +73,11 @@ class _CreateGRNState extends State<CreateGRN> {
     );
   }
 
-  Future<void> _initializeWarehouse() async {
-    final prefs = await SharedPreferences.getInstance();
-    Warehouse warehouse =
-        Warehouse.fromJson(json.decode(prefs.getString('activeWarehouse')!));
-    setState(() {
-      warehouseId = warehouse.id;
-    });
+  Widget buildGeneralWidget() {
+    return Text('General Widget');
   }
 
-  Future<List<MaterialData>> fetchMaterialsFromAPI(String query) async {
-    final response = await ApiCalls.getMaterialList(query);
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body)['data'];
-      print(data);
-      final materialList = List<MaterialData>.from(data['materials']
-          .map((materialJson) => MaterialData.fromJson(materialJson)));
-      return materialList;
-    } else {
-      Alerts.showMessage(context, "Something went wrong");
-      return []; // Return an empty list or handle the error case appropriately
-    }
-  }
-
-  void _searchMaterials(String query) async {
-    if (query.isNotEmpty) {
-      setState(() {
-        materials = [];
-      });
-      final materialList = await fetchMaterialsFromAPI(query);
-      setState(() {
-        materials = materialList;
-      });
-    }
-  }
-
-  void _submitForm() {
-    // Validate the form inputs
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    // Save form inputs
-    _formKey.currentState!.save();
-
-    material = selectedMaterial!.code;
-
-    // Display a confirmation dialog
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmation'),
-        content: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 16),
-            Text('Material Code: $material'),
-            const SizedBox(height: 8),
-            Text('Quantity: $quantity'),
-            const SizedBox(height: 8),
-            Text('Location: $location'),
-            const SizedBox(height: 8),
-            Text('Batch: $batch'),
-            const SizedBox(height: 8),
-            Text('Invoice: $invoice'),
-            const SizedBox(height: 8),
-            Text('Effective Date: ${effDate.toString()}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              // Call API to submit the form
-              _submitGRNForm();
-
-              Navigator.of(context).pop();
-            },
-            child: const Text('Submit'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _submitGRNForm() async {
-    // Display a loading dialog
-    showDialog(
-      context: context,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-
-    // Call API to submit the form
-    final response = await ApiCalls.createGRN(
-      warehouseId!,
-      material,
-      quantity,
-      location,
-      batch,
-      invoice,
-      effDate!,
-    );
-
-    print(response.statusCode);
-    print(response.body);
-
-    if (response.statusCode == 200) {
-      Alerts.showSuccessMessage(context, "GRN created successfully");
-    } else {
-      if (response.statusCode == 401) {
-        Alerts.showMessage(context, json.decode(response.body)['message']);
-      } else if (response.statusCode == 422) {
-        Alerts.showMessage(context, json.decode(response.body)['message']);
-      } else {
-        Alerts.showMessage(context, "Something went wrong");
-      }
-    }
+  Widget buildProductionReturnWidget() {
+    return Text('Production Return Widget');
   }
 }
