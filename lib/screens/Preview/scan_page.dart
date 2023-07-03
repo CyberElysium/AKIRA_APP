@@ -82,16 +82,34 @@ class _ScanPageState extends State<ScanPage> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Align(
                 alignment: Alignment.topRight,
-                child: IconButton(
-                  icon: const Icon(Icons.camera_alt),
-                  tooltip: 'Take Photo',
-                  onPressed: () {
+                child: InkWell(
+                  onTap: () {
                     // Navigate to the new material update page
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => MaterialUpdatePage(stock: stock)),
+                      MaterialPageRoute(
+                          builder: (context) => MaterialUpdatePage(stock: stock)),
                     );
                   },
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(
+                        Icons.camera_alt,
+                        size: 32,
+                        color: Colors.grey,
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Photo',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -263,17 +281,34 @@ class _ScanPageState extends State<ScanPage> {
               ),
             ),
           if (!showScanner) // Show the icon button if showScanner is false
-            IconButton(
-              icon: const Icon(Icons.qr_code),
-              tooltip: 'Scan QR Code',
-              iconSize: 40,
-              onPressed: () {
-                setState(() {
-                  showScanner =
-                      true; // Set showScanner to true to show the QR scanner again
-                  stock = null; // Clear previous stock data
-                });
-              },
+            Align(
+              alignment: Alignment.center,
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    showScanner = true; // Set showScanner to true to show the QR scanner again
+                    stock = null; // Clear previous stock data
+                  });
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(
+                      Icons.qr_code,
+                      size: 40,
+                      color: Colors.black,
+                    ),
+                    SizedBox(height: 20),
+                    Text(
+                      'QR',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
         ],
       ),

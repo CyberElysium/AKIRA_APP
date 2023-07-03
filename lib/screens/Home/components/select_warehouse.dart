@@ -135,7 +135,14 @@ class _SelectWarehouseState extends State<SelectWarehouse> {
                 _confirmSelection();
               }
             },
-            child: const Text('Confirm'),
+            child: const Text(
+                'Confirm',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
           ),
           const SizedBox(height: 20.0)
         ],

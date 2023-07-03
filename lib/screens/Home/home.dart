@@ -38,10 +38,11 @@ class _HomeScreenState extends State<HomeScreen> {
       key: _key,
       appBar: AppBar(
         title: const Text('AKIRA Inventory System'),
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () {},
-        ),
+        automaticallyImplyLeading: false,
+        // leading: IconButton(
+        //   icon: const Icon(Icons.menu),
+        //   onPressed: () {},
+        // ),
         actions: [
           PopupMenuButton(
             itemBuilder: (BuildContext context) {
@@ -102,7 +103,6 @@ class _HomeScreenState extends State<HomeScreen> {
       return _getHomeBody(_selectedIndex);
     }
   }
-
 
   _checkActiveWarehouse() {
     ApiCalls.getActiveWarehouse().then((response) async {

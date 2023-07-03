@@ -40,6 +40,10 @@ class _CreateMaterialState extends State<CreateMaterial> {
   String invoice = '';
   DateTime? effDate = DateTime.now();
 
+  String? uomName = '';
+  String? categoryName = '';
+  String? supplierName = '';
+
   List<UOM> uomOptions = [];
   List<Category> categoryOptions = [];
   List<Supplier> supplierOptions = [];
@@ -108,6 +112,9 @@ class _CreateMaterialState extends State<CreateMaterial> {
                   onChanged: (value) {
                     setState(() {
                       uom = value!;
+                      uomName = uomOptions
+                          .firstWhere((element) => element.id == int.parse(uom))
+                          .name;
                     });
                   },
                 ),
@@ -134,6 +141,10 @@ class _CreateMaterialState extends State<CreateMaterial> {
                   onChanged: (value) {
                     setState(() {
                       category = value!;
+                      categoryName = categoryOptions
+                          .firstWhere(
+                              (element) => element.id == int.parse(category))
+                          .name;
                     });
                   },
                 ),
@@ -147,12 +158,6 @@ class _CreateMaterialState extends State<CreateMaterial> {
                   ),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Please enter a rate';
-                    }
-                    return null;
-                  },
                   onChanged: (value) {
                     setState(() {
                       rate = double.parse(value);
@@ -176,6 +181,10 @@ class _CreateMaterialState extends State<CreateMaterial> {
                   onChanged: (value) {
                     setState(() {
                       supplier = value!;
+                      supplierName = supplierOptions
+                          .firstWhere(
+                              (element) => element.id == int.parse(supplier))
+                          .name;
                     });
                   },
                 ),
@@ -497,10 +506,10 @@ class _CreateMaterialState extends State<CreateMaterial> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text('Name: $name'),
-                Text('UOM: $uom'),
-                Text('Category: $category'),
+                Text('UOM: $uomName'),
+                Text('Category: $categoryName'),
                 Text('Rate: $rate'),
-                Text('Supplier: $supplier'),
+                Text('Supplier: $supplierName'),
                 Text('Color: $color'),
                 Text('Width: $width'),
                 Text('Height: $height'),
@@ -515,7 +524,7 @@ class _CreateMaterialState extends State<CreateMaterial> {
                       Text('Location: $location'),
                       Text('Batch: $batch'),
                       Text('Invoice: $invoice'),
-                      Text('Eff Date: ${effDate.toString()}'),
+                      Text('Eff Date: ${DateFormat('yyyy-MM-dd').format(effDate!)}'),
                     ],
                   ),
               ],

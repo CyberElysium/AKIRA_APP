@@ -197,7 +197,10 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
                       ),
                       subtitle: widget.stock?.imageUrl != null
                           ? Image.network(
-                        updatedStock != null && updatedStock!.imageUrl != null ? updatedStock!.imageUrl! : widget.stock!.imageUrl!,
+                              updatedStock != null &&
+                                      updatedStock!.imageUrl != null
+                                  ? updatedStock!.imageUrl!
+                                  : widget.stock!.imageUrl!,
                               fit: BoxFit.cover,
                             )
                           : const SizedBox(),
@@ -210,7 +213,7 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
             if (_isUploading)
               Container(
                 alignment: Alignment.center,
-                child: SpinKitCircle(
+                child: const SpinKitCircle(
                   color: Colors.blue,
                   size: 50.0,
                 ),
@@ -226,21 +229,56 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
                 ),
               ),
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: getImage,
-                  icon: Icon(Icons.camera_alt),
-                  tooltip: 'Capture Image',
-                ),
-                if (_image != null) const SizedBox(width: 10),
-                IconButton(
-                  onPressed: submitImage,
-                  icon: Icon(Icons.cloud_upload),
-                  tooltip: 'Submit Image',
-                ),
-              ],
+            Align(
+              alignment: Alignment.center,
+              child: Row(
+                children: [
+                  SizedBox(width: 50),
+                  GestureDetector(
+                    onTap: getImage,
+                    child: Row(
+                      children: [
+                        IconButton(
+                          onPressed: getImage,
+                          icon: const Icon(Icons.camera_alt),
+                          tooltip: 'Capture Image',
+                        ),
+                        const SizedBox(width: 8), // Add spacing here
+                        const Text(
+                          'Photo',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_image != null) const SizedBox(width: 16), // Add spacing here
+                  Spacer(),
+                  GestureDetector(
+                    onTap: submitImage,
+                    child: Row(
+                      children: [
+                        IconButton(
+                          onPressed: submitImage,
+                          icon: const Icon(Icons.cloud_upload),
+                          tooltip: 'Submit Image',
+                        ),
+                        const SizedBox(width: 8), // Add spacing here
+                        const Text(
+                          'Upload',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 50)
+                ],
+              ),
             ),
           ],
         ),
@@ -248,31 +286,48 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
     );
   }
 
-
   Future getImage() async {
     setState(() {
       _image = null;
     });
 
-    final pickedFile = await picker.getImage(source: ImageSource.camera);
+    final pickedFile =
+        await picker.getImage(source: ImageSource.camera, imageQuality: 100);
 
     setState(() {
-      if (pickedFile != null) {
+      if (pickedFile != null && pickedFile.path != null) {
         _image = File(pickedFile.path);
+      } else {
+        Fluttertoast.showToast(
+          msg: 'No image selected',
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+        );
       }
     });
   }
 
   void submitImage() {
+    if (_image == null || !_image!.existsSync()) {
+      Fluttertoast.showToast(
+        msg: 'Please capture an image first',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+      );
+      return;
+    }
+
     setState(() {
       _isUploading = true;
     });
 
-    ApiCalls.uploadImage(_image!,widget.stock?.materialId).then((response) async {
+    ApiCalls.uploadImage(_image!, widget.stock?.materialId)
+        .then((response) async {
       if (!mounted) {
         return;
       }
 
+      print(response.statusCode);
       setState(() {
         _isUploading = false;
       });
@@ -301,13 +356,12 @@ class _MaterialUpdatePageState extends State<MaterialUpdatePage> {
         return;
       }
 
-      if(response.statusCode == 200) {
+      if (response.statusCode == 200) {
         var data = json.decode(response.body)['data'];
         setState(() {
           updatedStock = Stock.fromJson(data['stock']);
         });
       }
-
     });
   }
 }
