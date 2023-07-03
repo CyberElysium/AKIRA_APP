@@ -6,7 +6,7 @@ class MaterialItem {
   String uom_name;
   String category_name;
   String quantity;
-  String sku;
+  String? sku;
 
   MaterialItem({
     required this.id,
@@ -16,7 +16,7 @@ class MaterialItem {
     required this.uom_name,
     required this.category_name,
     required this.quantity,
-    required this.sku,
+    this.sku,
   });
 
   factory MaterialItem.fromJson(Map<String, dynamic> json) {

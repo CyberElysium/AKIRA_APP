@@ -60,7 +60,8 @@ class _CreateGRNState extends State<CreateGRN> {
                   ),
                 ),
                 // Load the related widget based on the selected item
-                if (selectedDropdownItem == 'General') GeneralForm(),
+                if (selectedDropdownItem == 'General')
+                  GeneralForm(),
                 if (selectedDropdownItem == 'Production Return')
                   ProductionReturnForm(),
                 // Add your other widgets here
@@ -71,13 +72,5 @@ class _CreateGRNState extends State<CreateGRN> {
         ),
       ),
     );
-  }
-
-  Widget buildGeneralWidget() {
-    return Text('General Widget');
-  }
-
-  Widget buildProductionReturnWidget() {
-    return Text('Production Return Widget');
   }
 }
